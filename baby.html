@@ -405,10 +405,33 @@
             try {
                 const resp = await fetch(API_BASE, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'cors',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify(initialState)
                 });
-                blobId = resp.headers.get('X-jsonblob-Id');
+                
+                if (!resp.ok) {
+                    throw new Error('Server returned ' + resp.status);
+                }
+                
+                // Try multiple ways to get blob ID
+                blobId = resp.headers.get('X-jsonblob-Id') 
+                      || resp.headers.get('x-jsonblob-id');
+                
+                if (!blobId) {
+                    const loc = resp.headers.get('Location') || resp.headers.get('location');
+                    if (loc) {
+                        blobId = loc.split('/').pop();
+                    }
+                }
+                
+                if (!blobId) {
+                    throw new Error('Could not get room ID from response');
+                }
+                
                 gameState = initialState;
                 
                 document.getElementById('setupScreen').classList.add('hidden');
@@ -418,6 +441,7 @@
                 startPolling();
                 renderWaiting();
             } catch (e) {
+                console.error('Create game error:', e);
                 alert('Error creating game: ' + e.message);
             }
         }
@@ -475,7 +499,7 @@
         }
 
         async function fetchState() {
-            const resp = await fetch(API_BASE + '/' + blobId);
+            const resp = await fetch(API_BASE + '/' + blobId, { mode: 'cors' });
             if (!resp.ok) throw new Error('Game not found');
             gameState = await resp.json();
             return gameState;
@@ -484,6 +508,7 @@
         async function saveState() {
             await fetch(API_BASE + '/' + blobId, {
                 method: 'PUT',
+                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(gameState)
             });
