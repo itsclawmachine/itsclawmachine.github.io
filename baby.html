@@ -253,9 +253,10 @@
             </div>
             
             <div class="setup-actions">
-                <button class="setup-btn primary" onclick="createGame()">New Game</button>
-                <button class="setup-btn secondary" onclick="showJoin()">Join</button>
+                <button class="setup-btn primary" onclick="startLocalGame()">Pass & Play</button>
+                <button class="setup-btn secondary" onclick="createGame()">Online</button>
             </div>
+            <p class="status-msg">Pass & Play = select 2+ roles, share one device</p>
             
             <div id="joinSection" class="hidden" style="margin-top: 15px;">
                 <input type="text" class="join-input" id="joinCode" placeholder="ABC" maxlength="3">
@@ -318,7 +319,9 @@
         
         let peer, connections = [];
         let isHost = false;
+        let isLocal = false;
         let myId = '', myRole = '', roomCode = '';
+        let selectedRoles = [];
         let gameState = null;
         let gameTimer = null;
         let wakeTimer = null;
@@ -335,13 +338,51 @@
         }
 
         function selectRole(el, role) {
-            myRole = role;
-            document.querySelectorAll('.family-btn').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected');
+            if (selectedRoles.includes(role)) {
+                selectedRoles = selectedRoles.filter(r => r !== role);
+                el.classList.remove('selected');
+            } else {
+                selectedRoles.push(role);
+                el.classList.add('selected');
+            }
+            myRole = selectedRoles[0] || '';
         }
 
         function showJoin() {
             document.getElementById('joinSection').classList.toggle('hidden');
+        }
+
+        function startLocalGame() {
+            if (selectedRoles.length < 2) { 
+                alert('Select at least 2 family members for Pass & Play!'); 
+                return; 
+            }
+            
+            isLocal = true;
+            isHost = true;
+            const duration = parseInt(document.getElementById('gameLength').value) * 60;
+            
+            gameState = {
+                status: 'playing',
+                duration: duration,
+                timeLeft: duration,
+                players: selectedRoles.map((role, i) => ({ 
+                    id: 'local_' + i, 
+                    role: role, 
+                    hugs: 0, 
+                    pendingStart: i === 0 ? Date.now() : null 
+                })),
+                holderId: 'local_0',
+                startTime: Date.now(),
+                wakeTime: null
+            };
+            
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            
+            scheduleWake();
+            gameTimer = setInterval(tick, 100);
+            render();
         }
 
         function createGame() {
@@ -520,12 +561,16 @@
         }
 
         function passBaby() {
-            if (gameState.holderId !== myId) return;
-            
-            if (isHost) {
-                handlePass(myId);
+            if (isLocal) {
+                // In local mode, anyone can press pass (it's pass-and-play)
+                handlePass(gameState.holderId);
             } else {
-                connections[0]?.send({ type: 'pass', fromId: myId });
+                if (gameState.holderId !== myId) return;
+                if (isHost) {
+                    handlePass(myId);
+                } else {
+                    connections[0]?.send({ type: 'pass', fromId: myId });
+                }
             }
         }
 
@@ -580,8 +625,8 @@
                 document.getElementById('statusLabel').textContent = holder ? `${holder.role} is hugging` : '';
             }
             
-            // Pass button
-            document.getElementById('passBtn').disabled = gameState.holderId !== myId;
+            // Pass button - always enabled in local mode
+            document.getElementById('passBtn').disabled = !isLocal && gameState.holderId !== myId;
             
             // Players
             const maxHugs = Math.max(...gameState.players.map(p => {
@@ -598,7 +643,7 @@
                 
                 return `
                     <div class="player-row ${isHolder ? 'holding' : ''}">
-                        <span class="player-name">${p.role}${p.id === myId ? ' 👈' : ''}</span>
+                        <span class="player-name">${p.role}${!isLocal && p.id === myId ? ' 👈' : ''}</span>
                         <div class="player-bar-container">
                             <div class="player-bar ${isHolder ? 'pending' : ''}" style="width: ${barWidth}%"></div>
                         </div>
