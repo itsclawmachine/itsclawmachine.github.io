@@ -13,16 +13,8 @@
             min-height: 100vh;
             padding: 15px;
         }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            color: #6b5b7a;
-            font-size: 1.5em;
-            margin-bottom: 15px;
-        }
+        .container { max-width: 500px; margin: 0 auto; }
+        h1 { text-align: center; color: #6b5b7a; font-size: 1.5em; margin-bottom: 15px; }
         .card {
             background: white;
             border-radius: 20px;
@@ -30,41 +22,16 @@
             margin-bottom: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .baby-container {
-            text-align: center;
-            padding: 20px 0;
-        }
-        .baby-svg {
-            width: 120px;
-            height: 120px;
-        }
-        .baby-svg.wiggle {
-            animation: wiggle 0.5s ease-in-out infinite;
-        }
-        .baby-svg.awake {
-            animation: cry 0.2s ease-in-out infinite;
-        }
-        @keyframes wiggle {
-            0%, 100% { transform: rotate(-3deg); }
-            50% { transform: rotate(3deg); }
-        }
-        @keyframes cry {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        .status-label {
-            font-size: 1.4em;
-            color: #6b5b7a;
-            margin: 15px 0;
-            font-weight: 600;
-        }
-        .timer {
-            font-size: 2em;
-            color: #9b8aa6;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-        }
+        .baby-container { text-align: center; padding: 20px 0; }
+        .baby-svg { width: 120px; height: 120px; }
+        .baby-svg.wiggle { animation: wiggle 0.5s ease-in-out infinite; }
+        .baby-svg.awake { animation: cry 0.2s ease-in-out infinite; }
+        @keyframes wiggle { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+        @keyframes cry { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .status-label { font-size: 1.4em; color: #6b5b7a; margin: 15px 0; font-weight: 600; }
+        .timer { font-size: 2em; color: #9b8aa6; font-weight: bold; text-align: center; margin-bottom: 10px; }
+        .round-name { text-align: center; font-size: 1.1em; color: #6b5b7a; margin-bottom: 5px; }
+        .sleep-timer { font-size: 0.9em; color: #9b8aa6; margin-top: 5px; }
         .pass-btn {
             width: 100%;
             padding: 18px;
@@ -76,207 +43,68 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .pass-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #ccc;
-        }
-        .players-card {
-            background: white;
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .players-title {
-            font-size: 0.9em;
-            color: #9b8aa6;
-            margin-bottom: 10px;
-        }
-        .player-row {
-            display: flex;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
+        .pass-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #ccc; }
+        .pass-btn.shh { background: linear-gradient(135deg, #b8d4e8 0%, #7eb8da 100%); margin-top: 10px; }
+        .players-card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .players-title { font-size: 0.9em; color: #9b8aa6; margin-bottom: 10px; }
+        .player-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
         .player-row:last-child { border-bottom: none; }
-        .player-row.holding {
-            background: #f5f0ff;
-            margin: 0 -15px;
-            padding: 8px 15px;
-            border-radius: 10px;
-        }
-        .player-name {
-            font-weight: 600;
-            color: #6b5b7a;
-            width: 80px;
-            font-size: 0.95em;
-        }
-        .player-bar-container {
-            flex: 1;
-            height: 20px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            margin-left: 10px;
-            overflow: hidden;
-        }
-        .player-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #ffb6c1 0%, #ff8fab 100%);
-            border-radius: 10px;
-            transition: width 0.5s ease-out;
-        }
-        .player-bar.pending {
-            background: linear-gradient(90deg, #ffd89b 0%, #f9c846 100%);
-        }
+        .player-row.holding { background: #f5f0ff; margin: 0 -15px; padding: 8px 15px; border-radius: 10px; }
+        .player-name { font-weight: 600; color: #6b5b7a; min-width: 60px; font-size: 0.95em; }
+        .player-stars { font-size: 0.8em; margin-left: 5px; min-width: 50px; }
+        .player-bar-container { flex: 1; height: 20px; background: #f0f0f0; border-radius: 10px; margin-left: 10px; overflow: hidden; }
+        .player-bar { height: 100%; background: linear-gradient(90deg, #ffb6c1 0%, #ff8fab 100%); border-radius: 10px; transition: width 0.5s ease-out; }
+        .player-bar.pending { background: linear-gradient(90deg, #ffd89b 0%, #f9c846 100%); }
         .setup-card { text-align: center; }
-        .setup-card h2 {
-            color: #6b5b7a;
-            margin-bottom: 20px;
-        }
-        .family-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        .family-btn {
-            padding: 12px 5px;
-            border: 2px solid #e0d5e8;
-            background: white;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 0.85em;
-            color: #6b5b7a;
-        }
-        .family-btn.selected {
-            border-color: #7bc47f;
-            background: #f0fff0;
-        }
-        .setup-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .setup-btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .setup-btn.primary {
-            background: linear-gradient(135deg, #a8d5a2 0%, #7bc47f 100%);
-            color: white;
-        }
-        .setup-btn.secondary {
-            background: #f0f0f0;
-            color: #6b5b7a;
-        }
-        .join-input {
-            padding: 15px;
-            font-size: 1.2em;
-            border: 2px solid #e0d5e8;
-            border-radius: 12px;
-            width: 100%;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            margin-bottom: 10px;
-        }
-        .room-code {
-            font-size: 2em;
-            font-weight: bold;
-            color: #7bc47f;
-            letter-spacing: 8px;
-            margin: 10px 0;
-        }
-        .time-select {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-            color: #6b5b7a;
-        }
-        .time-select select {
-            padding: 10px;
-            font-size: 1em;
-            border: 2px solid #e0d5e8;
-            border-radius: 8px;
-        }
+        .setup-card h2 { color: #6b5b7a; margin-bottom: 20px; }
+        .family-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+        .family-btn { padding: 12px 5px; border: 2px solid #e0d5e8; background: white; border-radius: 12px; cursor: pointer; font-size: 0.85em; color: #6b5b7a; }
+        .family-btn.selected { border-color: #7bc47f; background: #f0fff0; }
+        .setup-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .setup-btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-size: 1em; font-weight: bold; cursor: pointer; }
+        .setup-btn.primary { background: linear-gradient(135deg, #a8d5a2 0%, #7bc47f 100%); color: white; }
+        .setup-btn.secondary { background: #f0f0f0; color: #6b5b7a; }
+        .join-input { padding: 15px; font-size: 1.2em; border: 2px solid #e0d5e8; border-radius: 12px; width: 100%; text-align: center; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 10px; }
+        .room-code { font-size: 2em; font-weight: bold; color: #7bc47f; letter-spacing: 8px; margin: 10px 0; text-align: center; }
         .hidden { display: none !important; }
         .game-over { text-align: center; padding: 30px; }
         .game-over h2 { color: #6b5b7a; margin-bottom: 20px; }
-        .winner-name {
-            font-size: 2em;
-            color: #7bc47f;
-            margin-bottom: 20px;
-        }
-        .wake-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,100,100,0.3);
-            pointer-events: none;
-            animation: flash 0.5s ease-out forwards;
-        }
-        @keyframes flash {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        .status-msg {
-            text-align: center;
-            color: #9b8aa6;
-            margin: 10px 0;
-            font-size: 0.9em;
-        }
+        .winner-name { font-size: 2em; color: #7bc47f; margin-bottom: 20px; }
+        .wake-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,100,100,0.3); pointer-events: none; animation: flash 0.5s ease-out forwards; }
+        @keyframes flash { from { opacity: 1; } to { opacity: 0; } }
+        .status-msg { text-align: center; color: #9b8aa6; margin: 10px 0; font-size: 0.9em; }
+        .shh-prompt { font-size: 1.3em; color: #ff6b6b; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>👶 Sleeping Baby</h1>
 
-        <!-- Setup Screen -->
         <div id="setupScreen" class="card setup-card">
             <h2>Pick Your Role</h2>
             <div class="family-grid" id="familyGrid"></div>
-            
-            <div class="time-select">
-                <label>Game length:</label>
-                <select id="gameLength">
-                    <option value="2">2 min</option>
-                    <option value="3">3 min</option>
-                    <option value="5" selected>5 min</option>
-                    <option value="10">10 min</option>
-                </select>
-            </div>
-            
             <div class="setup-actions">
                 <button class="setup-btn primary" onclick="startLocalGame()">Pass & Play</button>
                 <button class="setup-btn secondary" onclick="createGame()">Online</button>
             </div>
             <p class="status-msg">Pass & Play = select 2+ roles, share one device</p>
-            
             <div id="joinSection" class="hidden" style="margin-top: 15px;">
                 <input type="text" class="join-input" id="joinCode" placeholder="ABC" maxlength="3">
                 <button class="setup-btn primary" onclick="joinGame()">Join Game</button>
             </div>
         </div>
 
-        <!-- Waiting Screen -->
         <div id="waitingScreen" class="card hidden">
             <h2 style="color: #6b5b7a; text-align: center;">Waiting for players...</h2>
-            <div class="room-code" id="displayCode" style="text-align: center;">---</div>
+            <div class="room-code" id="displayCode">---</div>
             <p class="status-msg">Share this code!</p>
             <div id="waitingPlayers" style="margin-top: 15px;"></div>
-            <button class="setup-btn primary" id="startBtn" onclick="startGame()" style="margin-top: 20px;" disabled>Start Game</button>
+            <button class="setup-btn primary" id="startBtn" onclick="hostStartGame()" style="margin-top: 20px;" disabled>Start Game</button>
         </div>
 
-        <!-- Game Screen -->
         <div id="gameScreen" class="hidden">
             <div class="card">
-                <div class="round-name" id="roundName" style="text-align:center; font-size:1.1em; color:#6b5b7a; margin-bottom:5px;">🌅 Morning Snooze</div>
+                <div class="round-name" id="roundName">🌅 Morning Snooze</div>
                 <div class="timer" id="timer">5:00</div>
                 <div class="baby-container">
                     <svg class="baby-svg" id="babySvg" viewBox="0 0 100 100">
@@ -295,25 +123,21 @@
                         </g>
                     </svg>
                     <div class="status-label" id="statusLabel">Loading...</div>
-                    <div class="sleep-timer" id="sleepTimer" style="font-size: 0.9em; color: #9b8aa6; margin-top: 5px;"></div>
+                    <div class="sleep-timer" id="sleepTimer"></div>
                 </div>
                 <button class="pass-btn" id="passBtn" onclick="passBaby()" disabled>Pass Baby 💕</button>
-                <button class="pass-btn hidden" id="shhBtn" onclick="shhBaby()" style="background: linear-gradient(135deg, #b8d4e8 0%, #7eb8da 100%); margin-top: 10px;">
-                    Shh! 🤫 <span id="shhProgress"></span>
-                </button>
-                <div class="hidden status-msg" id="shhHelper" style="margin-top:10px; font-size:0.95em;"></div>
+                <button class="pass-btn shh hidden" id="shhBtn" onclick="shhBaby()">Shh! 🤫 <span id="shhProgress"></span></button>
+                <div class="hidden status-msg" id="shhHelper"></div>
             </div>
-
             <div class="players-card">
                 <div class="players-title">Family Hugs</div>
                 <div id="playersList"></div>
             </div>
         </div>
 
-        <!-- Game Over -->
         <div id="gameOverScreen" class="card game-over hidden">
-            <h2>Time's Up!</h2>
-            <div>Most hugs goes to...</div>
+            <h2>Bedtime! 🌙</h2>
+            <div>Champion hugger...</div>
             <div class="winner-name" id="winnerName">---</div>
             <div id="finalScores"></div>
             <button class="setup-btn primary" onclick="location.reload()" style="margin-top: 20px;">Play Again</button>
@@ -321,21 +145,11 @@
     </div>
 
     <script>
+        // Constants
         const FAMILY = ['Dad', 'Mum', 'G-Ma', 'G-Dad', 'Sis', 'Bro', 'Uncle', 'Aunty', 'Bubba', 'Tot'];
-        
-        let peer, connections = [];
-        let isHost = false;
-        let isLocal = false;
-        let myId = '', myRole = '', roomCode = '';
-        let selectedRoles = [];
-        let gameState = null;
-        let gameTimer = null;
-        let wakeTimer = null;
-        let shhCount = 0;
         const SHH_NEEDED = 3;
-        let lastSleepStart = null;
-        let currentRound = 0;
-        
+        const CATCH_UP_BONUS = 3;
+        const SKIN_TONES = ['#FFDFC4', '#F0D5BE', '#EECEB3', '#E1B899', '#E5C298', '#D7A86E', '#C68642', '#8D5524', '#6B4423', '#4A2912'];
         const ROUNDS = [
             { name: 'Morning Snooze', emoji: '🌅', minSleep: 8, maxSleep: 15 },
             { name: 'Mid-Morning Rest', emoji: '☀️', minSleep: 12, maxSleep: 20 },
@@ -344,16 +158,30 @@
             { name: 'Evening Rest', emoji: '🌆', minSleep: 22, maxSleep: 35 },
             { name: 'Bedtime', emoji: '🌙', minSleep: 25, maxSleep: 40 }
         ];
+
+        // State
+        let peer, connections = [];
+        let isHost = false, isLocal = false;
+        let myId = '', myRole = '', roomCode = '';
+        let selectedRoles = [];
+        let gameState = null;
+        let gameTimer = null, wakeTimer = null;
+        let shhCount = 0, lastSleepStart = null;
+        const babySkinColor = SKIN_TONES[Math.floor(Math.random() * SKIN_TONES.length)];
+
+        // Helpers
+        const genCode = () => Array(3).fill().map(() => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]).join('');
+        const getHolder = () => gameState?.players.find(p => p.id === gameState.holderId);
+        const getRound = () => ROUNDS[gameState?.round || 0] || ROUNDS[ROUNDS.length - 1];
         
-        // Inclusive skin tones
-        const SKIN_TONES = ['#FFDFC4', '#F0D5BE', '#EECEB3', '#E1B899', '#E5C298', '#D7A86E', '#C68642', '#8D5524', '#6B4423', '#4A2912'];
-        let babySkinColor = SKIN_TONES[Math.floor(Math.random() * SKIN_TONES.length)];
+        const createPlayer = (id, role) => ({ id, role, hugs: 0, stars: 0, pendingStart: null });
+        
+        const getPlayerLowestStars = () => {
+            if (gameState.players.length < 2) return null;
+            return [...gameState.players].sort((a, b) => a.stars - b.stars)[0];
+        };
 
-        function genCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-            return Array(3).fill().map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
-        }
-
+        // Setup
         function initFamilyGrid() {
             document.getElementById('familyGrid').innerHTML = FAMILY.map(f => 
                 `<button class="family-btn" onclick="selectRole(this, '${f}')">${f}</button>`
@@ -371,81 +199,55 @@
             myRole = selectedRoles[0] || '';
         }
 
-        function showJoin() {
-            document.getElementById('joinSection').classList.toggle('hidden');
-        }
-
+        // Local game
         function startLocalGame() {
             if (selectedRoles.length < 2) { 
-                alert('Select at least 2 family members for Pass & Play!'); 
+                alert('Select at least 2 family members!'); 
                 return; 
             }
-            
             isLocal = true;
             isHost = true;
-            const duration = parseInt(document.getElementById('gameLength').value) * 60;
             
-            currentRound = 0;
             gameState = {
                 status: 'playing',
-                duration: duration,
-                timeLeft: duration,
-                players: selectedRoles.map((role, i) => ({ 
-                    id: 'local_' + i, 
-                    role: role, 
-                    hugs: 0,
-                    stars: 0,
-                    pendingStart: i === 0 ? Date.now() : null 
-                })),
+                players: selectedRoles.map((role, i) => createPlayer('local_' + i, role)),
                 holderId: 'local_0',
-                startTime: Date.now(),
-                wakeTime: null,
-                round: 0
+                round: 0,
+                wakeTime: null
             };
+            gameState.players[0].pendingStart = Date.now();
             
-            document.getElementById('setupScreen').classList.add('hidden');
-            document.getElementById('gameScreen').classList.remove('hidden');
-            
-            lastSleepStart = Date.now();
-            scheduleWake();
-            gameTimer = setInterval(tick, 100);
-            render();
+            showScreen('gameScreen');
+            startRound();
         }
 
+        // Online game
         function createGame() {
             if (!myRole) { alert('Pick a family member!'); return; }
-            
             isHost = true;
             roomCode = genCode();
             myId = roomCode;
             
-            const duration = parseInt(document.getElementById('gameLength').value) * 60;
-            
             gameState = {
                 status: 'waiting',
-                duration: duration,
-                timeLeft: duration,
-                players: [{ id: myId, role: myRole, hugs: 0, stars: 0, pendingStart: null }],
+                players: [createPlayer(myId, myRole)],
                 holderId: myId,
-                startTime: null,
-                wakeTime: null,
-                round: 0
+                round: 0,
+                wakeTime: null
             };
             
             peer = new Peer(roomCode);
             peer.on('open', () => {
-                document.getElementById('setupScreen').classList.add('hidden');
-                document.getElementById('waitingScreen').classList.remove('hidden');
+                showScreen('waitingScreen');
                 document.getElementById('displayCode').textContent = roomCode;
                 renderWaiting();
             });
-            peer.on('connection', handleConnection);
+            peer.on('connection', conn => { connections.push(conn); setupConn(conn); });
             peer.on('error', e => alert('Error: ' + e.message));
         }
 
         function joinGame() {
             if (!myRole) { alert('Pick a family member!'); return; }
-            
             roomCode = document.getElementById('joinCode').value.toUpperCase().trim();
             if (roomCode.length !== 3) { alert('Enter 3-letter code'); return; }
             
@@ -459,19 +261,11 @@
                     connections.push(conn);
                     conn.send({ type: 'join', id: myId, role: myRole });
                     setupConn(conn);
-                    
-                    document.getElementById('setupScreen').classList.add('hidden');
-                    document.getElementById('waitingScreen').classList.remove('hidden');
+                    showScreen('waitingScreen');
                     document.getElementById('displayCode').textContent = roomCode;
                 });
-                conn.on('error', e => alert('Could not connect'));
             });
             peer.on('error', e => alert('Error: ' + e.message));
-        }
-
-        function handleConnection(conn) {
-            connections.push(conn);
-            setupConn(conn);
         }
 
         function setupConn(conn) {
@@ -481,42 +275,28 @@
                         conn.send({ type: 'error', msg: data.role + ' is taken!' });
                         return;
                     }
-                    gameState.players.push({ id: data.id, role: data.role, hugs: 0, pendingStart: null });
+                    gameState.players.push(createPlayer(data.id, data.role));
                     broadcast({ type: 'state', state: gameState });
                     renderWaiting();
                 }
                 else if (data.type === 'state') {
                     gameState = data.state;
                     if (gameState.status === 'waiting') renderWaiting();
-                    else if (gameState.status === 'playing') {
-                        document.getElementById('waitingScreen').classList.add('hidden');
-                        document.getElementById('gameScreen').classList.remove('hidden');
+                    else if (gameState.status === 'playing' || gameState.status === 'awake') {
+                        showScreen('gameScreen');
                         render();
                     }
                     else if (gameState.status === 'ended') renderGameOver();
                 }
-                else if (data.type === 'error') {
-                    alert(data.msg);
-                    location.reload();
-                }
-                else if (data.type === 'pass' && isHost) {
-                    handlePass(data.fromId);
-                }
-                else if (data.type === 'shh' && isHost) {
-                    handleShh();
-                }
-                else if (data.type === 'wake') {
-                    showWake();
-                }
+                else if (data.type === 'error') { alert(data.msg); location.reload(); }
+                else if (data.type === 'pass' && isHost) handlePass(data.fromId);
+                else if (data.type === 'shh' && isHost) processShh();
+                else if (data.type === 'wake') flashWake();
             });
-            conn.on('close', () => {
-                connections = connections.filter(c => c !== conn);
-            });
+            conn.on('close', () => { connections = connections.filter(c => c !== conn); });
         }
 
-        function broadcast(data) {
-            connections.forEach(c => c.send(data));
-        }
+        function broadcast(data) { connections.forEach(c => c.send(data)); }
 
         function renderWaiting() {
             if (!gameState) return;
@@ -526,58 +306,43 @@
             document.getElementById('startBtn').disabled = !isHost || gameState.players.length < 2;
         }
 
-        function startGame() {
+        function hostStartGame() {
             if (!isHost) return;
-            
             gameState.status = 'playing';
-            gameState.startTime = Date.now();
-            gameState.holderId = gameState.players[0].id;
-            gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
-            lastSleepStart = Date.now();
-            
-            scheduleWake();
+            gameState.players[0].pendingStart = Date.now();
             broadcast({ type: 'state', state: gameState });
-            
-            document.getElementById('waitingScreen').classList.add('hidden');
-            document.getElementById('gameScreen').classList.remove('hidden');
-            
-            gameTimer = setInterval(tick, 100);
+            showScreen('gameScreen');
+            startRound();
+        }
+
+        // Game logic
+        function startRound() {
+            lastSleepStart = Date.now();
+            shhCount = 0;
+            scheduleWake();
+            if (!gameTimer) gameTimer = setInterval(tick, 100);
             render();
         }
 
         function scheduleWake() {
-            const round = ROUNDS[currentRound] || ROUNDS[ROUNDS.length - 1];
+            const round = getRound();
             const delay = (round.minSleep + Math.random() * (round.maxSleep - round.minSleep)) * 1000;
             wakeTimer = setTimeout(wakeBaby, delay);
         }
 
         function tick() {
-            if (!gameState) return;
-            if (gameState.status !== 'playing' && gameState.status !== 'awake') return;
-            
-            // Only count time when playing (pause when awake)
-            if (gameState.status === 'playing') {
-                const elapsed = (Date.now() - gameState.startTime) / 1000;
-                gameState.timeLeft = Math.max(0, gameState.duration - elapsed);
-                
-                if (gameState.timeLeft <= 0) {
-                    endGame();
-                    return;
-                }
-            }
-            
+            if (!gameState || gameState.status === 'ended') return;
             render();
-            if (isHost && gameState.status === 'playing') broadcast({ type: 'state', state: gameState });
         }
 
         function wakeBaby() {
             if (!isHost || gameState.status !== 'playing') return;
             
-            const holder = gameState.players.find(p => p.id === gameState.holderId);
-            if (holder && holder.pendingStart) {
-                // Only lose half of pending hugs
-                const pendingHugs = Math.floor((Date.now() - holder.pendingStart) / 1000);
-                holder.hugs += Math.floor(pendingHugs / 2);
+            const holder = getHolder();
+            if (holder?.pendingStart) {
+                // Keep half of pending hugs
+                const pending = Math.floor((Date.now() - holder.pendingStart) / 1000);
+                holder.hugs += Math.floor(pending / 2);
                 holder.pendingStart = null;
             }
             
@@ -587,10 +352,10 @@
             
             broadcast({ type: 'wake' });
             broadcast({ type: 'state', state: gameState });
-            showWake();
+            flashWake();
         }
 
-        function showWake() {
+        function flashWake() {
             const overlay = document.createElement('div');
             overlay.className = 'wake-overlay';
             document.body.appendChild(overlay);
@@ -600,132 +365,90 @@
 
         function shhBaby() {
             if (gameState.status !== 'awake') return;
-            
             if (isLocal || isHost) {
-                shhCount++;
-                
-                if (shhCount >= SHH_NEEDED) {
-                    // Round ends - award star to player with most hugs
-                    const sortedByHugs = [...gameState.players].sort((a, b) => b.hugs - a.hugs);
-                    if (sortedByHugs[0].hugs > 0) {
-                        sortedByHugs[0].stars++;
-                    }
-                    
-                    // Move to next round
-                    currentRound++;
-                    gameState.round = currentRound;
-                    
-                    // Check if game over (all rounds done)
-                    if (currentRound >= ROUNDS.length) {
-                        endGame();
-                        return;
-                    }
-                    
-                    // Reset hugs for new round
-                    gameState.players.forEach(p => {
-                        p.hugs = 0;
-                        p.pendingStart = null;
-                    });
-                    
-                    // Pass to next player
-                    const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
-                    const nextIdx = (idx + 1) % gameState.players.length;
-                    const nextPlayer = gameState.players[nextIdx];
-                    gameState.holderId = nextPlayer.id;
-                    nextPlayer.pendingStart = Date.now();
-                    
-                    gameState.status = 'playing';
-                    gameState.wakeTime = null;
-                    shhCount = 0;
-                    lastSleepStart = Date.now();
-                    
-                    scheduleWake();
-                    if (!isLocal) broadcast({ type: 'state', state: gameState });
-                }
-                render();
+                processShh();
             } else {
                 connections[0]?.send({ type: 'shh' });
             }
         }
 
-        function handleShh() {
-            // Host handles shh from remote player
+        function processShh() {
             shhCount++;
-            
             if (shhCount >= SHH_NEEDED) {
-                // Round ends - award star to player with most hugs
-                const sortedByHugs = [...gameState.players].sort((a, b) => b.hugs - a.hugs);
-                if (sortedByHugs[0].hugs > 0) {
-                    sortedByHugs[0].stars++;
-                }
-                
-                // Move to next round
-                currentRound++;
-                gameState.round = currentRound;
-                
-                // Check if game over
-                if (currentRound >= ROUNDS.length) {
-                    endGame();
-                    return;
-                }
-                
-                // Reset hugs for new round
-                gameState.players.forEach(p => {
-                    p.hugs = 0;
-                    p.pendingStart = null;
-                });
-                
-                const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
-                const nextIdx = (idx + 1) % gameState.players.length;
-                const nextPlayer = gameState.players[nextIdx];
-                gameState.holderId = nextPlayer.id;
-                nextPlayer.pendingStart = Date.now();
-                
-                gameState.status = 'playing';
-                gameState.wakeTime = null;
-                shhCount = 0;
-                lastSleepStart = Date.now();
-                
-                scheduleWake();
+                completeRound();
+            } else {
+                render();
+                if (!isLocal) broadcast({ type: 'state', state: gameState });
             }
-            broadcast({ type: 'state', state: gameState });
-            render();
+        }
+
+        function completeRound() {
+            // Award star to player with most hugs
+            const sortedByHugs = [...gameState.players].sort((a, b) => b.hugs - a.hugs);
+            if (sortedByHugs[0].hugs > 0) {
+                sortedByHugs[0].stars++;
+            }
+            
+            // Next round
+            gameState.round++;
+            
+            if (gameState.round >= ROUNDS.length) {
+                endGame();
+                return;
+            }
+            
+            // Reset hugs, pass to next player
+            gameState.players.forEach(p => { p.hugs = 0; p.pendingStart = null; });
+            
+            const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
+            const nextIdx = (idx + 1) % gameState.players.length;
+            const nextPlayer = gameState.players[nextIdx];
+            gameState.holderId = nextPlayer.id;
+            
+            // Catch-up: bonus for player with fewest stars
+            const lowestStars = getPlayerLowestStars();
+            if (lowestStars && lowestStars.id === nextPlayer.id) {
+                nextPlayer.hugs += CATCH_UP_BONUS;
+            }
+            
+            nextPlayer.pendingStart = Date.now();
+            gameState.status = 'playing';
+            gameState.wakeTime = null;
+            
+            if (!isLocal) broadcast({ type: 'state', state: gameState });
+            startRound();
         }
 
         function passBaby() {
+            if (gameState.status !== 'playing') return;
+            
             if (isLocal) {
-                // In local mode, anyone can press pass (it's pass-and-play)
                 handlePass(gameState.holderId);
             } else {
                 if (gameState.holderId !== myId) return;
-                if (isHost) {
-                    handlePass(myId);
-                } else {
-                    connections[0]?.send({ type: 'pass', fromId: myId });
-                }
+                if (isHost) handlePass(myId);
+                else connections[0]?.send({ type: 'pass', fromId: myId });
             }
         }
 
         function handlePass(fromId) {
             if (gameState.holderId !== fromId) return;
             
-            // Lock in hugs
             const holder = gameState.players.find(p => p.id === fromId);
-            if (holder && holder.pendingStart) {
+            if (holder?.pendingStart) {
                 holder.hugs += Math.floor((Date.now() - holder.pendingStart) / 1000);
                 holder.pendingStart = null;
             }
             
-            // Pass to next
             const idx = gameState.players.findIndex(p => p.id === fromId);
             const nextIdx = (idx + 1) % gameState.players.length;
             const nextPlayer = gameState.players[nextIdx];
             gameState.holderId = nextPlayer.id;
             
-            // Catch-up bonus: if next player is in last place, give them bonus hugs
-            const sortedByHugs = [...gameState.players].sort((a, b) => a.hugs - b.hugs);
-            if (sortedByHugs[0].id === nextPlayer.id && gameState.players.length > 1) {
-                nextPlayer.hugs += 2; // Small catch-up bonus on normal pass
+            // Catch-up: small bonus for player with fewest stars
+            const lowestStars = getPlayerLowestStars();
+            if (lowestStars && lowestStars.id === nextPlayer.id) {
+                nextPlayer.hugs += Math.floor(CATCH_UP_BONUS / 2);
             }
             
             nextPlayer.pendingStart = Date.now();
@@ -734,103 +457,12 @@
             render();
         }
 
-        function render() {
-            if (!gameState) return;
-            
-            // Round name
-            const round = ROUNDS[currentRound] || ROUNDS[ROUNDS.length - 1];
-            document.getElementById('roundName').textContent = `${round.emoji} ${round.name}`;
-            
-            // Timer
-            const mins = Math.floor(gameState.timeLeft / 60);
-            const secs = Math.floor(gameState.timeLeft % 60);
-            document.getElementById('timer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-            
-            // Set skin color
-            document.getElementById('babyFace').setAttribute('fill', babySkinColor);
-            
-            // Baby
-            const holder = gameState.players.find(p => p.id === gameState.holderId);
-            const isAwake = gameState.status === 'awake';
-            const babySvg = document.getElementById('babySvg');
-            
-            if (isAwake) {
-                babySvg.classList.remove('wiggle');
-                babySvg.classList.add('awake');
-                document.getElementById('leftEye').setAttribute('d', 'M 35 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
-                document.getElementById('rightEye').setAttribute('d', 'M 55 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
-                document.getElementById('mouth').setAttribute('d', 'M 42 50 Q 50 58 58 50');
-                document.getElementById('zzz').style.display = 'none';
-                document.getElementById('statusLabel').innerHTML = holder 
-                    ? `<span style="font-size:1.3em; color:#ff6b6b;">👆 ${holder.role}!</span><br>Put baby back to sleep` 
-                    : 'Put baby back to sleep';
-                document.getElementById('sleepTimer').textContent = '';
-            } else {
-                babySvg.classList.remove('awake');
-                babySvg.classList.add('wiggle');
-                document.getElementById('leftEye').setAttribute('d', 'M 35 38 Q 40 42 45 38');
-                document.getElementById('rightEye').setAttribute('d', 'M 55 38 Q 60 42 65 38');
-                document.getElementById('mouth').setAttribute('d', 'M 45 52 Q 50 55 55 52');
-                document.getElementById('zzz').style.display = 'block';
-                document.getElementById('statusLabel').textContent = holder ? `${holder.role} is hugging` : '';
-                
-                // Show how long baby has been asleep
-                if (lastSleepStart) {
-                    const sleepSecs = Math.floor((Date.now() - lastSleepStart) / 1000);
-                    document.getElementById('sleepTimer').textContent = `💤 Asleep for ${sleepSecs}s`;
-                }
-            }
-            
-            // Show/hide buttons based on state
-            const passBtn = document.getElementById('passBtn');
-            const shhBtn = document.getElementById('shhBtn');
-            
-            const shhHelper = document.getElementById('shhHelper');
-            if (isAwake) {
-                passBtn.classList.add('hidden');
-                shhBtn.classList.remove('hidden');
-                shhHelper.classList.remove('hidden');
-                document.getElementById('shhProgress').textContent = `(${shhCount}/${SHH_NEEDED})`;
-                shhHelper.innerHTML = holder ? `<strong>${holder.role}</strong>, tap Shh to soothe the baby!` : '';
-            } else {
-                passBtn.classList.remove('hidden');
-                shhBtn.classList.add('hidden');
-                shhHelper.classList.add('hidden');
-                passBtn.disabled = !isLocal && gameState.holderId !== myId;
-            }
-            
-            // Players
-            const maxHugs = Math.max(...gameState.players.map(p => {
-                let h = p.hugs;
-                if (p.pendingStart) h += Math.floor((Date.now() - p.pendingStart) / 1000);
-                return h;
-            }), 1);
-            
-            document.getElementById('playersList').innerHTML = gameState.players.map(p => {
-                const isHolder = p.id === gameState.holderId;
-                let displayHugs = p.hugs;
-                if (p.pendingStart) displayHugs += Math.floor((Date.now() - p.pendingStart) / 1000);
-                const barWidth = Math.min((displayHugs / (maxHugs + 5)) * 100, 100);
-                
-                const stars = '⭐'.repeat(p.stars || 0);
-                return `
-                    <div class="player-row ${isHolder ? 'holding' : ''}">
-                        <span class="player-name">${p.role}${!isLocal && p.id === myId ? ' 👈' : ''}</span>
-                        <span style="margin-left:5px; font-size:0.8em;">${stars}</span>
-                        <div class="player-bar-container">
-                            <div class="player-bar ${isHolder ? 'pending' : ''}" style="width: ${barWidth}%"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
         function endGame() {
             gameState.status = 'ended';
             clearInterval(gameTimer);
             clearTimeout(wakeTimer);
             
-            // Save final pending hugs and award star for current round if any hugs
+            // Finalize any pending hugs
             gameState.players.forEach(p => {
                 if (p.pendingStart) {
                     p.hugs += Math.floor((Date.now() - p.pendingStart) / 1000);
@@ -838,32 +470,109 @@
                 }
             });
             
-            // Award final round star
-            const sortedByHugs = [...gameState.players].sort((a, b) => b.hugs - a.hugs);
-            if (sortedByHugs[0].hugs > 0) {
-                sortedByHugs[0].stars++;
-            }
-            
             if (isHost && !isLocal) broadcast({ type: 'state', state: gameState });
             renderGameOver();
         }
 
-        function renderGameOver() {
-            document.getElementById('gameScreen').classList.add('hidden');
-            document.getElementById('gameOverScreen').classList.remove('hidden');
-            
-            const sorted = [...gameState.players].sort((a, b) => b.stars - a.stars);
-            document.getElementById('winnerName').textContent = sorted[0]?.role + '! 👶💕';
-            
-            const maxStars = Math.max(...sorted.map(p => p.stars), 1);
-            document.getElementById('finalScores').innerHTML = sorted.map(p => `
-                <div class="player-row" style="padding: 10px 0;">
-                    <span class="player-name">${p.role}</span>
-                    <span style="margin-left: auto; font-size: 1.2em;">${'⭐'.repeat(p.stars || 0) || '—'}</span>
-                </div>
-            `).join('');
+        // Rendering
+        function showScreen(id) {
+            ['setupScreen', 'waitingScreen', 'gameScreen', 'gameOverScreen'].forEach(s => 
+                document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
         }
 
+        function render() {
+            if (!gameState) return;
+            
+            const round = getRound();
+            const holder = getHolder();
+            const isAwake = gameState.status === 'awake';
+            
+            // Round & timer
+            document.getElementById('roundName').textContent = `${round.emoji} ${round.name}`;
+            document.getElementById('timer').textContent = `Round ${gameState.round + 1}/${ROUNDS.length}`;
+            
+            // Baby appearance
+            document.getElementById('babyFace').setAttribute('fill', babySkinColor);
+            const babySvg = document.getElementById('babySvg');
+            const leftEye = document.getElementById('leftEye');
+            const rightEye = document.getElementById('rightEye');
+            const mouth = document.getElementById('mouth');
+            const zzz = document.getElementById('zzz');
+            
+            if (isAwake) {
+                babySvg.classList.replace('wiggle', 'awake') || babySvg.classList.add('awake');
+                babySvg.classList.remove('wiggle');
+                leftEye.setAttribute('d', 'M 35 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
+                rightEye.setAttribute('d', 'M 55 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
+                mouth.setAttribute('d', 'M 42 50 Q 50 58 58 50');
+                zzz.style.display = 'none';
+                document.getElementById('statusLabel').innerHTML = holder 
+                    ? `<span class="shh-prompt">👆 ${holder.role}!</span><br>Put baby back to sleep` 
+                    : 'Put baby back to sleep';
+                document.getElementById('sleepTimer').textContent = '';
+            } else {
+                babySvg.classList.remove('awake');
+                babySvg.classList.add('wiggle');
+                leftEye.setAttribute('d', 'M 35 38 Q 40 42 45 38');
+                rightEye.setAttribute('d', 'M 55 38 Q 60 42 65 38');
+                mouth.setAttribute('d', 'M 45 52 Q 50 55 55 52');
+                zzz.style.display = 'block';
+                document.getElementById('statusLabel').textContent = holder ? `${holder.role} is hugging` : '';
+                document.getElementById('sleepTimer').textContent = lastSleepStart 
+                    ? `💤 Asleep for ${Math.floor((Date.now() - lastSleepStart) / 1000)}s` : '';
+            }
+            
+            // Buttons
+            const passBtn = document.getElementById('passBtn');
+            const shhBtn = document.getElementById('shhBtn');
+            const shhHelper = document.getElementById('shhHelper');
+            
+            passBtn.classList.toggle('hidden', isAwake);
+            shhBtn.classList.toggle('hidden', !isAwake);
+            shhHelper.classList.toggle('hidden', !isAwake);
+            
+            if (isAwake) {
+                document.getElementById('shhProgress').textContent = `(${shhCount}/${SHH_NEEDED})`;
+                shhHelper.innerHTML = holder ? `<strong>${holder.role}</strong>, tap Shh to soothe!` : '';
+            } else {
+                passBtn.disabled = !isLocal && gameState.holderId !== myId;
+            }
+            
+            // Players
+            const maxHugs = Math.max(...gameState.players.map(p => 
+                p.hugs + (p.pendingStart ? Math.floor((Date.now() - p.pendingStart) / 1000) : 0)
+            ), 1);
+            
+            document.getElementById('playersList').innerHTML = gameState.players.map(p => {
+                const isHolding = p.id === gameState.holderId;
+                const displayHugs = p.hugs + (p.pendingStart ? Math.floor((Date.now() - p.pendingStart) / 1000) : 0);
+                const barWidth = Math.min((displayHugs / (maxHugs + 5)) * 100, 100);
+                const stars = '⭐'.repeat(p.stars || 0);
+                
+                return `<div class="player-row ${isHolding ? 'holding' : ''}">
+                    <span class="player-name">${p.role}${!isLocal && p.id === myId ? ' 👈' : ''}</span>
+                    <span class="player-stars">${stars}</span>
+                    <div class="player-bar-container">
+                        <div class="player-bar ${isHolding ? 'pending' : ''}" style="width: ${barWidth}%"></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderGameOver() {
+            showScreen('gameOverScreen');
+            const sorted = [...gameState.players].sort((a, b) => b.stars - a.stars);
+            document.getElementById('winnerName').textContent = sorted[0]?.role + '! 👶💕';
+            document.getElementById('finalScores').innerHTML = sorted.map(p => 
+                `<div class="player-row" style="padding: 10px 0;">
+                    <span class="player-name">${p.role}</span>
+                    <span style="margin-left: auto; font-size: 1.2em;">${'⭐'.repeat(p.stars || 0) || '—'}</span>
+                </div>`
+            ).join('');
+        }
+
+        // Init
         initFamilyGrid();
     </script>
 </body>
