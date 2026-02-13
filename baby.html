@@ -294,6 +294,7 @@
                         </g>
                     </svg>
                     <div class="status-label" id="statusLabel">Loading...</div>
+                    <div class="sleep-timer" id="sleepTimer" style="font-size: 0.9em; color: #9b8aa6; margin-top: 5px;"></div>
                 </div>
                 <button class="pass-btn" id="passBtn" onclick="passBaby()" disabled>Pass Baby 💕</button>
                 <button class="pass-btn hidden" id="shhBtn" onclick="shhBaby()" style="background: linear-gradient(135deg, #b8d4e8 0%, #7eb8da 100%); margin-top: 10px;">
@@ -330,6 +331,7 @@
         let wakeTimer = null;
         let shhCount = 0;
         const SHH_NEEDED = 5;
+        let lastSleepStart = null;
         
         // Inclusive skin tones
         const SKIN_TONES = ['#FFDFC4', '#F0D5BE', '#EECEB3', '#E1B899', '#E5C298', '#D7A86E', '#C68642', '#8D5524', '#6B4423', '#4A2912'];
@@ -389,6 +391,7 @@
             document.getElementById('setupScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
             
+            lastSleepStart = Date.now();
             scheduleWake();
             gameTimer = setInterval(tick, 100);
             render();
@@ -514,6 +517,7 @@
             gameState.startTime = Date.now();
             gameState.holderId = gameState.players[0].id;
             gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
+            lastSleepStart = Date.now();
             
             scheduleWake();
             broadcast({ type: 'state', state: gameState });
@@ -582,11 +586,20 @@
                     // Baby back to sleep, pass to next player
                     const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
                     const nextIdx = (idx + 1) % gameState.players.length;
-                    gameState.holderId = gameState.players[nextIdx].id;
-                    gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
+                    const nextPlayer = gameState.players[nextIdx];
+                    gameState.holderId = nextPlayer.id;
+                    
+                    // Catch-up bonus: if next player is in last place, give them bonus hugs
+                    const sortedByHugs = [...gameState.players].sort((a, b) => a.hugs - b.hugs);
+                    if (sortedByHugs[0].id === nextPlayer.id && gameState.players.length > 1) {
+                        nextPlayer.hugs += 3; // Catch-up bonus!
+                    }
+                    
+                    nextPlayer.pendingStart = Date.now();
                     gameState.status = 'playing';
                     gameState.wakeTime = null;
                     shhCount = 0;
+                    lastSleepStart = Date.now(); // Reset sleep timer
                     
                     scheduleWake();
                     if (!isLocal) broadcast({ type: 'state', state: gameState });
@@ -604,11 +617,20 @@
             if (shhCount >= SHH_NEEDED) {
                 const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
                 const nextIdx = (idx + 1) % gameState.players.length;
-                gameState.holderId = gameState.players[nextIdx].id;
-                gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
+                const nextPlayer = gameState.players[nextIdx];
+                gameState.holderId = nextPlayer.id;
+                
+                // Catch-up bonus
+                const sortedByHugs = [...gameState.players].sort((a, b) => a.hugs - b.hugs);
+                if (sortedByHugs[0].id === nextPlayer.id && gameState.players.length > 1) {
+                    nextPlayer.hugs += 3;
+                }
+                
+                nextPlayer.pendingStart = Date.now();
                 gameState.status = 'playing';
                 gameState.wakeTime = null;
                 shhCount = 0;
+                lastSleepStart = Date.now();
                 
                 scheduleWake();
             }
@@ -643,10 +665,18 @@
             // Pass to next
             const idx = gameState.players.findIndex(p => p.id === fromId);
             const nextIdx = (idx + 1) % gameState.players.length;
-            gameState.holderId = gameState.players[nextIdx].id;
-            gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
+            const nextPlayer = gameState.players[nextIdx];
+            gameState.holderId = nextPlayer.id;
             
-            broadcast({ type: 'state', state: gameState });
+            // Catch-up bonus: if next player is in last place, give them bonus hugs
+            const sortedByHugs = [...gameState.players].sort((a, b) => a.hugs - b.hugs);
+            if (sortedByHugs[0].id === nextPlayer.id && gameState.players.length > 1) {
+                nextPlayer.hugs += 2; // Small catch-up bonus on normal pass
+            }
+            
+            nextPlayer.pendingStart = Date.now();
+            
+            if (!isLocal) broadcast({ type: 'state', state: gameState });
             render();
         }
 
@@ -673,7 +703,8 @@
                 document.getElementById('rightEye').setAttribute('d', 'M 55 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
                 document.getElementById('mouth').setAttribute('d', 'M 42 50 Q 50 58 58 50');
                 document.getElementById('zzz').style.display = 'none';
-                document.getElementById('statusLabel').textContent = '😢 Baby woke up! Shh!';
+                document.getElementById('statusLabel').textContent = holder ? `${holder.role} is putting baby back to sleep...` : 'Putting baby back to sleep...';
+                document.getElementById('sleepTimer').textContent = '';
             } else {
                 babySvg.classList.remove('awake');
                 babySvg.classList.add('wiggle');
@@ -682,6 +713,12 @@
                 document.getElementById('mouth').setAttribute('d', 'M 45 52 Q 50 55 55 52');
                 document.getElementById('zzz').style.display = 'block';
                 document.getElementById('statusLabel').textContent = holder ? `${holder.role} is hugging` : '';
+                
+                // Show how long baby has been asleep
+                if (lastSleepStart) {
+                    const sleepSecs = Math.floor((Date.now() - lastSleepStart) / 1000);
+                    document.getElementById('sleepTimer').textContent = `💤 Asleep for ${sleepSecs}s`;
+                }
             }
             
             // Show/hide buttons based on state
