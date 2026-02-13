@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sleeping Baby</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -36,7 +37,6 @@
         .baby-svg {
             width: 120px;
             height: 120px;
-            transition: transform 0.3s;
         }
         .baby-svg.wiggle {
             animation: wiggle 0.5s ease-in-out infinite;
@@ -57,7 +57,6 @@
             color: #6b5b7a;
             margin: 15px 0;
             font-weight: 600;
-            min-height: 1.5em;
         }
         .timer {
             font-size: 2em;
@@ -76,9 +75,7 @@
             border-radius: 15px;
             cursor: pointer;
             font-weight: bold;
-            transition: transform 0.1s, opacity 0.2s;
         }
-        .pass-btn:active { transform: scale(0.98); }
         .pass-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -111,7 +108,7 @@
         .player-name {
             font-weight: 600;
             color: #6b5b7a;
-            width: 70px;
+            width: 80px;
             font-size: 0.95em;
         }
         .player-bar-container {
@@ -127,19 +124,11 @@
             background: linear-gradient(90deg, #ffb6c1 0%, #ff8fab 100%);
             border-radius: 10px;
             transition: width 0.3s;
-            min-width: 0;
         }
         .player-bar.pending {
             background: linear-gradient(90deg, #ffd89b 0%, #f9c846 100%);
-            animation: pulse-bar 1s infinite;
         }
-        @keyframes pulse-bar {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        .setup-card {
-            text-align: center;
-        }
+        .setup-card { text-align: center; }
         .setup-card h2 {
             color: #6b5b7a;
             margin-bottom: 20px;
@@ -158,9 +147,7 @@
             cursor: pointer;
             font-size: 0.85em;
             color: #6b5b7a;
-            transition: all 0.2s;
         }
-        .family-btn:hover { border-color: #a8d5a2; }
         .family-btn.selected {
             border-color: #7bc47f;
             background: #f0fff0;
@@ -220,38 +207,29 @@
             border-radius: 8px;
         }
         .hidden { display: none !important; }
-        .waiting-msg {
-            color: #9b8aa6;
-            font-style: italic;
-            margin-top: 15px;
-        }
-        .game-over {
-            text-align: center;
-            padding: 30px;
-        }
-        .game-over h2 {
-            color: #6b5b7a;
-            margin-bottom: 20px;
-        }
+        .game-over { text-align: center; padding: 30px; }
+        .game-over h2 { color: #6b5b7a; margin-bottom: 20px; }
         .winner-name {
             font-size: 2em;
             color: #7bc47f;
             margin-bottom: 20px;
         }
-        .wake-flash {
-            animation: flash-red 0.5s ease-out;
+        .wake-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,100,100,0.3);
+            pointer-events: none;
+            animation: flash 0.5s ease-out forwards;
         }
-        @keyframes flash-red {
-            0% { background: #ffcccc; }
-            100% { background: white; }
+        @keyframes flash {
+            from { opacity: 1; }
+            to { opacity: 0; }
         }
-        .share-code {
-            background: #f5f0ff;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 15px;
+        .status-msg {
+            text-align: center;
+            color: #9b8aa6;
+            margin: 10px 0;
             font-size: 0.9em;
-            color: #6b5b7a;
         }
     </style>
 </head>
@@ -279,7 +257,7 @@
                 <button class="setup-btn secondary" onclick="showJoin()">Join</button>
             </div>
             
-            <div id="joinSection" class="hidden">
+            <div id="joinSection" class="hidden" style="margin-top: 15px;">
                 <input type="text" class="join-input" id="joinCode" placeholder="ABC" maxlength="3">
                 <button class="setup-btn primary" onclick="joinGame()">Join Game</button>
             </div>
@@ -289,8 +267,8 @@
         <div id="waitingScreen" class="card hidden">
             <h2 style="color: #6b5b7a; text-align: center;">Waiting for players...</h2>
             <div class="room-code" id="displayCode" style="text-align: center;">---</div>
-            <div class="share-code">Share this code with family!</div>
-            <div id="waitingPlayers" style="margin-top: 20px;"></div>
+            <p class="status-msg">Share this code!</p>
+            <div id="waitingPlayers" style="margin-top: 15px;"></div>
             <button class="setup-btn primary" id="startBtn" onclick="startGame()" style="margin-top: 20px;" disabled>Start Game</button>
         </div>
 
@@ -300,21 +278,14 @@
                 <div class="timer" id="timer">5:00</div>
                 <div class="baby-container">
                     <svg class="baby-svg" id="babySvg" viewBox="0 0 100 100">
-                        <!-- Blanket -->
                         <ellipse cx="50" cy="65" rx="40" ry="25" fill="#b8d4e8"/>
-                        <!-- Face -->
                         <circle cx="50" cy="40" r="28" fill="#ffdab9"/>
-                        <!-- Blush -->
                         <circle cx="35" cy="45" r="5" fill="#ffb6c1" opacity="0.5"/>
                         <circle cx="65" cy="45" r="5" fill="#ffb6c1" opacity="0.5"/>
-                        <!-- Closed eyes (sleeping) -->
                         <path id="leftEye" d="M 35 38 Q 40 42 45 38" stroke="#666" stroke-width="2" fill="none"/>
                         <path id="rightEye" d="M 55 38 Q 60 42 65 38" stroke="#666" stroke-width="2" fill="none"/>
-                        <!-- Mouth -->
                         <path id="mouth" d="M 45 52 Q 50 55 55 52" stroke="#666" stroke-width="2" fill="none"/>
-                        <!-- Hair tuft -->
                         <path d="M 45 15 Q 50 8 55 15" stroke="#8b7355" stroke-width="3" fill="none"/>
-                        <!-- Zzz -->
                         <g id="zzz">
                             <text x="75" y="25" font-size="10" fill="#9b8aa6">z</text>
                             <text x="82" y="18" font-size="8" fill="#9b8aa6">z</text>
@@ -326,369 +297,304 @@
                 <button class="pass-btn" id="passBtn" onclick="passBaby()" disabled>Pass Baby 💕</button>
             </div>
 
-            <div class="players-card" id="playersCard">
+            <div class="players-card">
                 <div class="players-title">Family Hugs</div>
                 <div id="playersList"></div>
             </div>
         </div>
 
-        <!-- Game Over Screen -->
+        <!-- Game Over -->
         <div id="gameOverScreen" class="card game-over hidden">
             <h2>Time's Up!</h2>
             <div>Most hugs goes to...</div>
             <div class="winner-name" id="winnerName">---</div>
             <div id="finalScores"></div>
-            <button class="setup-btn primary" onclick="newGame()" style="margin-top: 20px;">Play Again</button>
+            <button class="setup-btn primary" onclick="location.reload()" style="margin-top: 20px;">Play Again</button>
         </div>
     </div>
 
     <script>
-        const API_BASE = 'https://jsonblob.com/api/jsonBlob';
-        const POLL_INTERVAL = 500;
         const FAMILY = ['Dad', 'Mum', 'G-Ma', 'G-Dad', 'Sis', 'Bro', 'Uncle', 'Aunty', 'Bubba', 'Tot'];
         
-        let blobId = '';
-        let myId = '';
-        let myRole = '';
+        let peer, connections = [];
+        let isHost = false;
+        let myId = '', myRole = '', roomCode = '';
         let gameState = null;
-        let pollTimer = null;
-        let localHugs = 0;
-        let holdStartTime = null;
-        let lastWakeTime = 0;
+        let gameTimer = null;
+        let wakeTimer = null;
 
-        // Generate 3-letter code
         function genCode() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
             return Array(3).fill().map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
         }
 
-        function genId() {
-            return Math.random().toString(36).substring(2, 10);
-        }
-
-        // Setup family grid
         function initFamilyGrid() {
-            const grid = document.getElementById('familyGrid');
-            grid.innerHTML = FAMILY.map(f => 
-                `<button class="family-btn" onclick="selectRole('${f}')">${f}</button>`
+            document.getElementById('familyGrid').innerHTML = FAMILY.map(f => 
+                `<button class="family-btn" onclick="selectRole(this, '${f}')">${f}</button>`
             ).join('');
         }
 
-        function selectRole(role) {
+        function selectRole(el, role) {
             myRole = role;
             document.querySelectorAll('.family-btn').forEach(b => b.classList.remove('selected'));
-            event.target.classList.add('selected');
+            el.classList.add('selected');
         }
 
         function showJoin() {
             document.getElementById('joinSection').classList.toggle('hidden');
         }
 
-        async function createGame() {
+        function createGame() {
             if (!myRole) { alert('Pick a family member!'); return; }
-            myId = genId();
-            const code = genCode();
+            
+            isHost = true;
+            roomCode = genCode();
+            myId = roomCode;
+            
             const duration = parseInt(document.getElementById('gameLength').value) * 60;
             
-            const initialState = {
-                code: code,
-                host: myId,
+            gameState = {
                 status: 'waiting',
                 duration: duration,
                 timeLeft: duration,
-                players: [{ id: myId, role: myRole, hugs: 0, pending: 0 }],
-                holder: null,
-                nextWake: null,
-                lastUpdate: Date.now()
+                players: [{ id: myId, role: myRole, hugs: 0, pendingStart: null }],
+                holderId: myId,
+                startTime: null,
+                wakeTime: null
             };
             
-            try {
-                const resp = await fetch(API_BASE, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(initialState)
-                });
-                
-                if (!resp.ok) {
-                    throw new Error('Server returned ' + resp.status);
-                }
-                
-                // Try multiple ways to get blob ID
-                blobId = resp.headers.get('X-jsonblob-Id') 
-                      || resp.headers.get('x-jsonblob-id');
-                
-                if (!blobId) {
-                    const loc = resp.headers.get('Location') || resp.headers.get('location');
-                    if (loc) {
-                        blobId = loc.split('/').pop();
-                    }
-                }
-                
-                if (!blobId) {
-                    throw new Error('Could not get room ID from response');
-                }
-                
-                gameState = initialState;
-                
+            peer = new Peer(roomCode);
+            peer.on('open', () => {
                 document.getElementById('setupScreen').classList.add('hidden');
                 document.getElementById('waitingScreen').classList.remove('hidden');
-                document.getElementById('displayCode').textContent = code;
-                
-                startPolling();
+                document.getElementById('displayCode').textContent = roomCode;
                 renderWaiting();
-            } catch (e) {
-                console.error('Create game error:', e);
-                alert('Error creating game: ' + e.message);
-            }
+            });
+            peer.on('connection', handleConnection);
+            peer.on('error', e => alert('Error: ' + e.message));
         }
 
-        async function joinGame() {
+        function joinGame() {
             if (!myRole) { alert('Pick a family member!'); return; }
-            myId = genId();
-            const code = document.getElementById('joinCode').value.toUpperCase().trim();
-            if (code.length !== 3) { alert('Enter 3-letter code'); return; }
             
-            // Find game by code - we need to search or use code as blob ID
-            // For simplicity, we'll use code as part of a known blob lookup
-            // Actually, let's store code->blobId mapping differently
-            // For now, let's try fetching with code as ID (host will share full link)
+            roomCode = document.getElementById('joinCode').value.toUpperCase().trim();
+            if (roomCode.length !== 3) { alert('Enter 3-letter code'); return; }
             
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomParam = urlParams.get('room');
+            isHost = false;
+            myId = Math.random().toString(36).substr(2, 6);
             
-            if (roomParam) {
-                blobId = roomParam;
-            } else {
-                // Try to find by iterating (not ideal but works for demo)
-                alert('Please use the full link shared by the host');
-                return;
-            }
-            
-            try {
-                await fetchState();
-                if (!gameState || gameState.code !== code) {
-                    alert('Game not found!');
-                    return;
-                }
-                
-                if (gameState.players.find(p => p.role === myRole)) {
-                    alert(myRole + ' is already taken!');
-                    return;
-                }
-                
-                gameState.players.push({ id: myId, role: myRole, hugs: 0, pending: 0 });
-                await saveState();
-                
-                document.getElementById('setupScreen').classList.add('hidden');
-                
-                if (gameState.status === 'waiting') {
+            peer = new Peer();
+            peer.on('open', () => {
+                const conn = peer.connect(roomCode);
+                conn.on('open', () => {
+                    connections.push(conn);
+                    conn.send({ type: 'join', id: myId, role: myRole });
+                    setupConn(conn);
+                    
+                    document.getElementById('setupScreen').classList.add('hidden');
                     document.getElementById('waitingScreen').classList.remove('hidden');
-                    document.getElementById('displayCode').textContent = code;
-                } else {
-                    document.getElementById('gameScreen').classList.remove('hidden');
+                    document.getElementById('displayCode').textContent = roomCode;
+                });
+                conn.on('error', e => alert('Could not connect'));
+            });
+            peer.on('error', e => alert('Error: ' + e.message));
+        }
+
+        function handleConnection(conn) {
+            connections.push(conn);
+            setupConn(conn);
+        }
+
+        function setupConn(conn) {
+            conn.on('data', data => {
+                if (data.type === 'join' && isHost) {
+                    if (gameState.players.find(p => p.role === data.role)) {
+                        conn.send({ type: 'error', msg: data.role + ' is taken!' });
+                        return;
+                    }
+                    gameState.players.push({ id: data.id, role: data.role, hugs: 0, pendingStart: null });
+                    broadcast({ type: 'state', state: gameState });
+                    renderWaiting();
                 }
-                
-                startPolling();
-            } catch (e) {
-                alert('Could not join: ' + e.message);
-            }
-        }
-
-        async function fetchState() {
-            const resp = await fetch(API_BASE + '/' + blobId, { mode: 'cors' });
-            if (!resp.ok) throw new Error('Game not found');
-            gameState = await resp.json();
-            return gameState;
-        }
-
-        async function saveState() {
-            await fetch(API_BASE + '/' + blobId, {
-                method: 'PUT',
-                mode: 'cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(gameState)
+                else if (data.type === 'state') {
+                    gameState = data.state;
+                    if (gameState.status === 'waiting') renderWaiting();
+                    else if (gameState.status === 'playing') {
+                        document.getElementById('waitingScreen').classList.add('hidden');
+                        document.getElementById('gameScreen').classList.remove('hidden');
+                        render();
+                    }
+                    else if (gameState.status === 'ended') renderGameOver();
+                }
+                else if (data.type === 'error') {
+                    alert(data.msg);
+                    location.reload();
+                }
+                else if (data.type === 'pass' && isHost) {
+                    handlePass(data.fromId);
+                }
+                else if (data.type === 'wake') {
+                    showWake();
+                }
+            });
+            conn.on('close', () => {
+                connections = connections.filter(c => c !== conn);
             });
         }
 
-        function startPolling() {
-            pollTimer = setInterval(poll, POLL_INTERVAL);
-            poll();
-        }
-
-        async function poll() {
-            try {
-                await fetchState();
-                
-                if (gameState.status === 'waiting') {
-                    renderWaiting();
-                } else if (gameState.status === 'playing') {
-                    updateGame();
-                    renderGame();
-                } else if (gameState.status === 'ended') {
-                    renderGameOver();
-                }
-            } catch (e) {
-                console.error('Poll error:', e);
-            }
+        function broadcast(data) {
+            connections.forEach(c => c.send(data));
         }
 
         function renderWaiting() {
-            const list = document.getElementById('waitingPlayers');
-            list.innerHTML = gameState.players.map(p => 
-                `<div class="player-row"><span class="player-name">${p.role}</span></div>`
-            ).join('');
-            
-            document.getElementById('startBtn').disabled = gameState.players.length < 2;
-            
-            // Update URL for sharing
-            history.replaceState(null, '', '?room=' + blobId);
+            if (!gameState) return;
+            document.getElementById('waitingPlayers').innerHTML = gameState.players
+                .map(p => `<div style="padding:5px 0;color:#6b5b7a;">${p.role}${p.id === myId ? ' (you)' : ''}</div>`)
+                .join('');
+            document.getElementById('startBtn').disabled = !isHost || gameState.players.length < 2;
         }
 
-        async function startGame() {
-            if (gameState.host !== myId) return;
+        function startGame() {
+            if (!isHost) return;
             
             gameState.status = 'playing';
-            gameState.holder = gameState.players[0].id;
-            gameState.nextWake = Date.now() + (15000 + Math.random() * 20000);
             gameState.startTime = Date.now();
-            gameState.lastUpdate = Date.now();
+            gameState.holderId = gameState.players[0].id;
+            gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
             
-            await saveState();
+            scheduleWake();
+            broadcast({ type: 'state', state: gameState });
             
             document.getElementById('waitingScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
+            
+            gameTimer = setInterval(tick, 100);
+            render();
         }
 
-        function updateGame() {
-            const now = Date.now();
+        function scheduleWake() {
+            const delay = 10000 + Math.random() * 20000;
+            wakeTimer = setTimeout(wakeBaby, delay);
+        }
+
+        function tick() {
+            if (!gameState || gameState.status !== 'playing') return;
             
-            // Update time left
-            const elapsed = (now - gameState.startTime) / 1000;
+            const elapsed = (Date.now() - gameState.startTime) / 1000;
             gameState.timeLeft = Math.max(0, gameState.duration - elapsed);
             
-            // Check if game ended
-            if (gameState.timeLeft <= 0 && gameState.status === 'playing') {
+            if (gameState.timeLeft <= 0) {
                 endGame();
                 return;
             }
             
-            // Check if baby wakes (only host processes this)
-            if (gameState.host === myId && now > gameState.nextWake && gameState.status === 'playing') {
-                wakeBaby();
-            }
-            
-            // Update pending hugs for current holder
-            if (gameState.holder === myId && holdStartTime) {
-                localHugs = Math.floor((now - holdStartTime) / 1000);
-            }
+            render();
+            if (isHost) broadcast({ type: 'state', state: gameState });
         }
 
-        async function wakeBaby() {
-            const holder = gameState.players.find(p => p.id === gameState.holder);
-            if (holder) {
-                holder.pending = 0; // Lose pending hugs
-            }
+        function wakeBaby() {
+            if (!isHost || gameState.status !== 'playing') return;
             
-            // Pass to next player
-            const currentIdx = gameState.players.findIndex(p => p.id === gameState.holder);
-            const nextIdx = (currentIdx + 1) % gameState.players.length;
-            gameState.holder = gameState.players[nextIdx].id;
-            gameState.nextWake = Date.now() + (15000 + Math.random() * 25000);
+            const holder = gameState.players.find(p => p.id === gameState.holderId);
+            if (holder) holder.pendingStart = null; // lose pending hugs
+            
+            // Pass to next
+            const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
+            const nextIdx = (idx + 1) % gameState.players.length;
+            gameState.holderId = gameState.players[nextIdx].id;
+            gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
             gameState.wakeTime = Date.now();
             
-            await saveState();
+            broadcast({ type: 'wake' });
+            broadcast({ type: 'state', state: gameState });
+            showWake();
             
-            // Flash effect
-            document.getElementById('gameScreen').classList.add('wake-flash');
-            setTimeout(() => document.getElementById('gameScreen').classList.remove('wake-flash'), 500);
-            
-            holdStartTime = gameState.holder === myId ? Date.now() : null;
-            localHugs = 0;
+            scheduleWake();
         }
 
-        async function passBaby() {
-            if (gameState.holder !== myId) return;
+        function showWake() {
+            const overlay = document.createElement('div');
+            overlay.className = 'wake-overlay';
+            document.body.appendChild(overlay);
+            setTimeout(() => overlay.remove(), 500);
+        }
+
+        function passBaby() {
+            if (gameState.holderId !== myId) return;
             
-            // Save pending hugs
-            const me = gameState.players.find(p => p.id === myId);
-            if (me && localHugs > 0) {
-                me.hugs += localHugs;
-                me.pending = 0;
+            if (isHost) {
+                handlePass(myId);
+            } else {
+                connections[0]?.send({ type: 'pass', fromId: myId });
+            }
+        }
+
+        function handlePass(fromId) {
+            if (gameState.holderId !== fromId) return;
+            
+            // Lock in hugs
+            const holder = gameState.players.find(p => p.id === fromId);
+            if (holder && holder.pendingStart) {
+                holder.hugs += Math.floor((Date.now() - holder.pendingStart) / 1000);
+                holder.pendingStart = null;
             }
             
             // Pass to next
-            const currentIdx = gameState.players.findIndex(p => p.id === myId);
-            const nextIdx = (currentIdx + 1) % gameState.players.length;
-            gameState.holder = gameState.players[nextIdx].id;
+            const idx = gameState.players.findIndex(p => p.id === fromId);
+            const nextIdx = (idx + 1) % gameState.players.length;
+            gameState.holderId = gameState.players[nextIdx].id;
+            gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
             
-            await saveState();
-            
-            holdStartTime = null;
-            localHugs = 0;
+            broadcast({ type: 'state', state: gameState });
+            render();
         }
 
-        async function endGame() {
-            if (gameState.host !== myId) return;
+        function render() {
+            if (!gameState) return;
             
-            // Save any pending hugs for holder
-            const holder = gameState.players.find(p => p.id === gameState.holder);
-            if (holder) {
-                holder.hugs += holder.pending || 0;
-            }
-            
-            gameState.status = 'ended';
-            await saveState();
-        }
-
-        function renderGame() {
             // Timer
             const mins = Math.floor(gameState.timeLeft / 60);
             const secs = Math.floor(gameState.timeLeft % 60);
             document.getElementById('timer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
             
-            // Baby state
-            const holder = gameState.players.find(p => p.id === gameState.holder);
+            // Baby
+            const holder = gameState.players.find(p => p.id === gameState.holderId);
+            const recentWake = gameState.wakeTime && (Date.now() - gameState.wakeTime) < 1500;
             const babySvg = document.getElementById('babySvg');
-            const statusLabel = document.getElementById('statusLabel');
-            
-            const recentWake = gameState.wakeTime && (Date.now() - gameState.wakeTime) < 2000;
             
             if (recentWake) {
-                babySvg.classList.add('awake');
                 babySvg.classList.remove('wiggle');
-                // Awake eyes
-                document.getElementById('leftEye').setAttribute('d', 'M 35 38 m -5 0 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
-                document.getElementById('rightEye').setAttribute('d', 'M 60 38 m -5 0 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
-                document.getElementById('mouth').setAttribute('d', 'M 42 52 Q 50 60 58 52');
+                babySvg.classList.add('awake');
+                document.getElementById('leftEye').setAttribute('d', 'M 35 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
+                document.getElementById('rightEye').setAttribute('d', 'M 55 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
+                document.getElementById('mouth').setAttribute('d', 'M 42 50 Q 50 58 58 50');
                 document.getElementById('zzz').style.display = 'none';
-                statusLabel.textContent = '😢 Baby woke up!';
+                document.getElementById('statusLabel').textContent = '😢 Baby woke up!';
             } else {
                 babySvg.classList.remove('awake');
                 babySvg.classList.add('wiggle');
-                // Sleeping eyes
                 document.getElementById('leftEye').setAttribute('d', 'M 35 38 Q 40 42 45 38');
                 document.getElementById('rightEye').setAttribute('d', 'M 55 38 Q 60 42 65 38');
                 document.getElementById('mouth').setAttribute('d', 'M 45 52 Q 50 55 55 52');
                 document.getElementById('zzz').style.display = 'block';
-                statusLabel.textContent = holder ? `${holder.role} is hugging the baby` : '';
+                document.getElementById('statusLabel').textContent = holder ? `${holder.role} is hugging` : '';
             }
             
             // Pass button
-            const passBtn = document.getElementById('passBtn');
-            passBtn.disabled = gameState.holder !== myId;
+            document.getElementById('passBtn').disabled = gameState.holderId !== myId;
             
-            // Players list
-            const maxHugs = Math.max(...gameState.players.map(p => p.hugs + (p.id === myId ? localHugs : 0)), 1);
-            const playersList = document.getElementById('playersList');
+            // Players
+            const maxHugs = Math.max(...gameState.players.map(p => {
+                let h = p.hugs;
+                if (p.pendingStart) h += Math.floor((Date.now() - p.pendingStart) / 1000);
+                return h;
+            }), 1);
             
-            playersList.innerHTML = gameState.players.map(p => {
-                const isHolder = p.id === gameState.holder;
-                const displayHugs = p.hugs + (p.id === myId && isHolder ? localHugs : 0);
-                const barWidth = (displayHugs / (maxHugs + 10)) * 100;
+            document.getElementById('playersList').innerHTML = gameState.players.map(p => {
+                const isHolder = p.id === gameState.holderId;
+                let displayHugs = p.hugs;
+                if (p.pendingStart) displayHugs += Math.floor((Date.now() - p.pendingStart) / 1000);
+                const barWidth = Math.min((displayHugs / (maxHugs + 5)) * 100, 100);
                 
                 return `
                     <div class="player-row ${isHolder ? 'holding' : ''}">
@@ -699,14 +605,23 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        function endGame() {
+            gameState.status = 'ended';
+            clearInterval(gameTimer);
+            clearTimeout(wakeTimer);
             
-            // Track hold time
-            if (gameState.holder === myId && !holdStartTime) {
-                holdStartTime = Date.now();
-            } else if (gameState.holder !== myId) {
-                holdStartTime = null;
-                localHugs = 0;
-            }
+            // Save final pending hugs
+            gameState.players.forEach(p => {
+                if (p.pendingStart) {
+                    p.hugs += Math.floor((Date.now() - p.pendingStart) / 1000);
+                    p.pendingStart = null;
+                }
+            });
+            
+            if (isHost) broadcast({ type: 'state', state: gameState });
+            renderGameOver();
         }
 
         function renderGameOver() {
@@ -725,31 +640,9 @@
                     </div>
                 </div>
             `).join('');
-            
-            if (pollTimer) clearInterval(pollTimer);
         }
 
-        function newGame() {
-            location.href = location.pathname;
-        }
-
-        // Check for room in URL on load
-        window.addEventListener('DOMContentLoaded', () => {
-            initFamilyGrid();
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomParam = urlParams.get('room');
-            if (roomParam) {
-                blobId = roomParam;
-                document.getElementById('joinSection').classList.remove('hidden');
-                // Auto-fetch to get code
-                fetchState().then(() => {
-                    if (gameState) {
-                        document.getElementById('joinCode').value = gameState.code;
-                    }
-                }).catch(() => {});
-            }
-        });
+        initFamilyGrid();
     </script>
 </body>
 </html>
