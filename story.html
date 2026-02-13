@@ -4,102 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word-at-a-Time Story</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #2c1654 0%, #1a1a2e 100%);
             color: #fff;
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        h1 { 
-            text-align: center; 
-            margin: 0 0 5px 0;
-            font-size: 1.8em;
-        }
-        .subtitle {
-            text-align: center;
-            opacity: 0.7;
-            margin-bottom: 20px;
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 5px; font-size: 1.8em; }
+        .subtitle { text-align: center; opacity: 0.7; margin-bottom: 20px; }
+        .card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
         }
         .story-box {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 20px;
-            min-height: 150px;
-            max-height: 300px;
+            min-height: 120px;
+            max-height: 250px;
             overflow-y: auto;
-            margin-bottom: 20px;
             line-height: 1.8;
-            font-size: 1.2em;
+            font-size: 1.15em;
+            margin-bottom: 15px;
         }
-        .story-box .word {
-            display: inline;
-            transition: background 0.3s;
-        }
+        .story-box .word { display: inline; }
         .story-box .word.new {
-            background: rgba(78, 205, 196, 0.3);
+            background: rgba(78, 205, 196, 0.4);
             border-radius: 3px;
-            padding: 0 2px;
-            animation: fadeHighlight 2s forwards;
+            padding: 0 3px;
         }
-        @keyframes fadeHighlight {
-            from { background: rgba(78, 205, 196, 0.5); }
-            to { background: transparent; }
-        }
-        .story-box .word.mine {
-            color: #4ecdc4;
-        }
-        .empty-story {
-            opacity: 0.5;
-            font-style: italic;
-        }
-        .input-area {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
+        .empty-story { opacity: 0.5; font-style: italic; }
         .turn-indicator {
             text-align: center;
             font-size: 1.1em;
             margin-bottom: 15px;
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
         }
         .turn-indicator.your-turn {
             background: rgba(78, 205, 196, 0.3);
             animation: pulse 2s infinite;
         }
-        .turn-indicator.waiting {
-            background: rgba(255,255,255,0.1);
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        .word-input {
-            display: flex;
-            gap: 10px;
-        }
+        .turn-indicator.waiting { background: rgba(255,255,255,0.1); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .word-input { display: flex; gap: 10px; }
         input[type="text"] {
             flex: 1;
             padding: 15px;
-            font-size: 1.2em;
+            font-size: 1.1em;
             border: none;
             border-radius: 8px;
             background: rgba(255,255,255,0.9);
             color: #1a1a2e;
         }
-        input[type="text"]:disabled {
-            opacity: 0.5;
-        }
+        input:disabled { opacity: 0.5; }
         button {
             padding: 15px 25px;
             font-size: 1em;
@@ -107,120 +69,56 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            transition: transform 0.1s;
         }
-        button:active { transform: scale(0.95); }
-        button.primary {
-            background: #4ecdc4;
-            color: #1a1a2e;
-        }
-        button.primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        button.secondary {
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: #4ecdc4; color: #1a1a2e; }
+        .btn-secondary { background: rgba(255,255,255,0.2); color: #fff; }
         .players {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .players h3 {
-            margin: 0 0 10px 0;
-            font-size: 0.9em;
-            opacity: 0.7;
-        }
-        .player-list {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+            margin-bottom: 15px;
         }
         .player {
             background: rgba(255,255,255,0.1);
-            padding: 5px 12px;
+            padding: 6px 12px;
             border-radius: 20px;
             font-size: 0.9em;
         }
-        .player.current {
-            background: #4ecdc4;
-            color: #1a1a2e;
-        }
-        .player.me::after {
-            content: ' (you)';
-            opacity: 0.7;
-        }
-        .setup {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 25px;
-            text-align: center;
-        }
-        .setup input {
-            width: 100%;
-            margin: 10px 0;
-            text-align: center;
-        }
-        .room-code {
-            font-family: monospace;
+        .player.current { background: #4ecdc4; color: #1a1a2e; }
+        .player.me { border: 2px solid #4ecdc4; }
+        .setup-card { text-align: center; }
+        .setup-card h2 { margin-bottom: 20px; }
+        .setup-input {
+            padding: 15px;
             font-size: 1.1em;
-            background: #4ecdc4;
-            color: #1a1a2e;
-            padding: 8px 15px;
+            border: none;
             border-radius: 8px;
-            display: inline-block;
-            margin: 5px 0;
-            cursor: pointer;
-        }
-        .room-code:hover {
-            opacity: 0.9;
-        }
-        .actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-        .hidden { display: none; }
-        .stats {
-            text-align: center;
-            opacity: 0.7;
-            font-size: 0.9em;
-            margin-bottom: 10px;
-        }
-        .share-area {
+            width: 100%;
             text-align: center;
             margin-bottom: 15px;
-            padding: 15px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
         }
-        .share-area small {
-            display: block;
-            margin-bottom: 8px;
-            opacity: 0.7;
+        .setup-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .room-code {
+            font-family: monospace;
+            font-size: 2em;
+            letter-spacing: 8px;
+            margin: 15px 0;
+            color: #4ecdc4;
         }
-        .new-game-area {
+        .hidden { display: none !important; }
+        .stats { text-align: center; opacity: 0.7; font-size: 0.9em; margin-bottom: 10px; }
+        .share-link {
             text-align: center;
-            margin-top: 15px;
-        }
-        .error {
-            background: rgba(255, 107, 107, 0.3);
+            background: rgba(0,0,0,0.2);
             padding: 10px;
             border-radius: 8px;
             margin-bottom: 15px;
-            text-align: center;
+            word-break: break-all;
+            font-size: 0.85em;
+            cursor: pointer;
         }
-        .connection-status {
-            text-align: center;
-            font-size: 0.8em;
-            opacity: 0.5;
-            margin-top: 10px;
-        }
-        .connection-status.connected { color: #4ecdc4; }
-        .connection-status.error { color: #ff6b6b; }
+        .share-link:hover { background: rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
@@ -228,357 +126,303 @@
         <h1>📖 Word-at-a-Time</h1>
         <p class="subtitle">Build a story together, one word at a time</p>
 
-        <div id="setup" class="setup">
-            <p>Drop in, add words, drop out.<br>No signup. No install. Just stories.</p>
-            <input type="text" id="playerName" placeholder="Your name" maxlength="15">
-            <div class="actions">
-                <button class="primary" onclick="createRoom()">New Story</button>
-                <button class="secondary" onclick="showJoin()">Join Story</button>
+        <div id="setupScreen" class="card setup-card">
+            <h2>Join the Story</h2>
+            <input type="text" class="setup-input" id="playerName" placeholder="Your name" maxlength="12">
+            <div class="setup-actions">
+                <button class="btn-primary" onclick="createStory()">New Story</button>
+                <button class="btn-secondary" onclick="showJoin()">Join Story</button>
             </div>
-            <div id="joinArea" class="hidden" style="margin-top: 15px;">
-                <input type="text" id="roomCode" placeholder="Paste room code" maxlength="50">
-                <button class="primary" onclick="joinRoom()" style="margin-top: 10px;">Join</button>
+            <div id="joinSection" class="hidden" style="margin-top: 15px;">
+                <input type="text" class="setup-input" id="joinCode" placeholder="Enter code (ABC)" maxlength="3" style="text-transform: uppercase; letter-spacing: 5px;">
+                <button class="btn-primary" onclick="joinStory()">Join</button>
             </div>
+            <p style="margin-top: 20px; opacity: 0.7; font-size: 0.9em;">Or: <button class="btn-secondary" onclick="startLocalGame()" style="padding: 8px 15px;">Pass & Play (1 device)</button></p>
         </div>
 
-        <div id="game" class="hidden">
-            <div class="share-area">
-                <small>Share this link to invite others:</small>
-                <div class="room-code" id="shareCode" onclick="copyLink()" title="Click to copy">---</div>
-            </div>
+        <div id="waitingScreen" class="card hidden">
+            <h2 style="text-align: center;">Waiting for writers...</h2>
+            <div class="room-code" id="displayCode" style="text-align: center;">---</div>
+            <p style="text-align: center; opacity: 0.7;">Share this code!</p>
+            <div id="waitingPlayers" style="margin-top: 15px;"></div>
+            <button class="btn-primary" id="startBtn" onclick="hostStart()" style="width: 100%; margin-top: 15px;" disabled>Start Story</button>
+        </div>
 
-            <div class="players">
-                <h3>👥 Players (turn order)</h3>
-                <div class="player-list" id="playerList"></div>
-            </div>
-
+        <div id="gameScreen" class="hidden">
+            <div class="share-link" id="shareLink" onclick="copyLink()">Click to copy invite link</div>
+            
+            <div class="players" id="playersList"></div>
+            
             <div class="stats" id="stats">0 words</div>
             
-            <div class="story-box" id="storyBox">
-                <span class="empty-story">The story is empty. Add the first word!</span>
-            </div>
-
-            <div class="input-area">
-                <div class="turn-indicator" id="turnIndicator">Connecting...</div>
-                <div class="word-input">
-                    <input type="text" id="wordInput" placeholder="Type one word..." maxlength="30" disabled autocomplete="off">
-                    <button class="primary" id="submitBtn" onclick="submitWord()" disabled>Add</button>
+            <div class="card">
+                <div class="story-box" id="storyBox">
+                    <span class="empty-story">The story begins...</span>
                 </div>
             </div>
 
-            <div class="connection-status" id="connStatus">Connecting...</div>
+            <div class="card">
+                <div class="turn-indicator" id="turnIndicator">Loading...</div>
+                <div class="word-input">
+                    <input type="text" id="wordInput" placeholder="Type a word..." maxlength="25" disabled autocomplete="off">
+                    <button class="btn-primary" id="submitBtn" onclick="submitWord()" disabled>Add</button>
+                </div>
+            </div>
 
-            <div class="new-game-area">
-                <button class="secondary" onclick="newStory()">🔄 New Story</button>
-                <button class="secondary" onclick="leaveGame()">🚪 Leave</button>
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="btn-secondary" onclick="newStory()">🔄 New Story</button>
             </div>
         </div>
     </div>
 
     <script>
-        const API_BASE = 'https://jsonblob.com/api/jsonBlob';
-        const POLL_INTERVAL = 1000;
-        
-        let blobId = '';
-        let myName = '';
-        let myId = '';
+        // State
+        let peer, connections = [];
+        let isHost = false, isLocal = false;
+        let myId = '', myName = '', roomCode = '';
         let gameState = null;
-        let pollTimer = null;
         let lastWordCount = 0;
-        let lastSeenVersion = 0;
 
-        function generateId() {
-            return Math.random().toString(36).substring(2, 10);
-        }
+        // Helpers
+        const genCode = () => Array(3).fill().map(() => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]).join('');
+        const genId = () => Math.random().toString(36).substr(2, 8);
+        const showScreen = id => {
+            ['setupScreen', 'waitingScreen', 'gameScreen'].forEach(s => 
+                document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        };
 
         function showJoin() {
-            document.getElementById('joinArea').classList.toggle('hidden');
+            document.getElementById('joinSection').classList.toggle('hidden');
         }
 
-        async function createRoom() {
-            myName = document.getElementById('playerName').value.trim() || 'Anonymous';
-            myId = generateId();
+        // Local (Pass & Play)
+        function startLocalGame() {
+            isLocal = true;
+            isHost = true;
+            myId = 'local_0';
+            myName = 'Writer 1';
             
-            const initialState = {
-                version: 1,
+            gameState = {
+                status: 'playing',
                 words: [],
-                players: [{ id: myId, name: myName, lastSeen: Date.now() }],
-                currentTurn: 0,
-                createdAt: Date.now()
+                players: [
+                    { id: 'local_0', name: 'Writer 1' },
+                    { id: 'local_1', name: 'Writer 2' }
+                ],
+                currentTurn: 0
             };
             
-            try {
-                const response = await fetch(API_BASE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(initialState)
-                });
-                
-                blobId = response.headers.get('X-jsonblob-Id');
-                if (!blobId) {
-                    const loc = response.headers.get('Location');
-                    blobId = loc ? loc.split('/').pop() : null;
-                }
-                
-                if (!blobId) throw new Error('Could not get room ID');
-                
-                gameState = initialState;
-                startGame();
-            } catch (e) {
-                alert('Error creating room: ' + e.message);
-            }
+            showScreen('gameScreen');
+            document.getElementById('shareLink').classList.add('hidden');
+            render();
+            focusInput();
         }
 
-        async function joinRoom() {
+        // Online - Create
+        function createStory() {
             myName = document.getElementById('playerName').value.trim() || 'Anonymous';
-            myId = generateId();
+            myId = genId();
+            roomCode = genCode();
+            isHost = true;
             
-            let code = document.getElementById('roomCode').value.trim();
+            gameState = {
+                status: 'waiting',
+                words: [],
+                players: [{ id: myId, name: myName }],
+                currentTurn: 0
+            };
             
-            // Handle full URLs
-            if (code.includes('?room=')) {
-                code = code.split('?room=')[1].split('&')[0];
-            }
-            if (code.includes('jsonblob.com')) {
-                code = code.split('/').pop();
-            }
-            
-            blobId = code;
-            
-            if (!blobId) {
-                alert('Enter a valid room code');
-                return;
-            }
-            
-            try {
-                await fetchState();
-                if (!gameState) throw new Error('Room not found');
-                
-                // Add self to players
-                if (!gameState.players.find(p => p.id === myId)) {
-                    gameState.players.push({ id: myId, name: myName, lastSeen: Date.now() });
-                    gameState.version++;
-                    await saveState();
-                }
-                
-                startGame();
-            } catch (e) {
-                alert('Could not join room: ' + e.message);
-            }
-        }
-
-        function startGame() {
-            document.getElementById('setup').classList.add('hidden');
-            document.getElementById('game').classList.remove('hidden');
-            
-            // Set share URL
-            const shareUrl = window.location.origin + window.location.pathname + '?room=' + blobId;
-            document.getElementById('shareCode').textContent = shareUrl;
-            
-            // Update URL without reload
-            history.replaceState(null, '', '?room=' + blobId);
-            
-            // Start polling
-            pollState();
-            pollTimer = setInterval(pollState, POLL_INTERVAL);
-            
-            // Handle enter key
-            document.getElementById('wordInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') submitWord();
+            peer = new Peer(roomCode);
+            peer.on('open', () => {
+                showScreen('waitingScreen');
+                document.getElementById('displayCode').textContent = roomCode;
+                renderWaiting();
             });
+            peer.on('connection', conn => { connections.push(conn); setupConn(conn); });
+            peer.on('error', e => alert('Error: ' + e.message));
         }
 
-        async function fetchState() {
-            const response = await fetch(API_BASE + '/' + blobId);
-            if (!response.ok) throw new Error('Room not found');
-            gameState = await response.json();
-            return gameState;
-        }
-
-        async function pollState() {
-            try {
-                await fetchState();
-                
-                // Update my lastSeen
-                const me = gameState.players.find(p => p.id === myId);
-                if (me) {
-                    me.lastSeen = Date.now();
-                }
-                
-                // Remove inactive players (>30 seconds)
-                const now = Date.now();
-                const activePlayers = gameState.players.filter(p => 
-                    p.id === myId || (now - p.lastSeen) < 30000
-                );
-                
-                if (activePlayers.length !== gameState.players.length) {
-                    gameState.players = activePlayers;
-                    gameState.version++;
-                    await saveState();
-                }
-                
-                render();
-                updateConnectionStatus('connected');
-            } catch (e) {
-                console.error('Poll error:', e);
-                updateConnectionStatus('error');
-            }
-        }
-
-        async function saveState() {
-            try {
-                await fetch(API_BASE + '/' + blobId, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(gameState)
+        // Online - Join
+        function joinStory() {
+            myName = document.getElementById('playerName').value.trim() || 'Anonymous';
+            myId = genId();
+            roomCode = document.getElementById('joinCode').value.toUpperCase().trim();
+            if (roomCode.length !== 3) { alert('Enter 3-letter code'); return; }
+            
+            peer = new Peer();
+            peer.on('open', () => {
+                const conn = peer.connect(roomCode);
+                conn.on('open', () => {
+                    connections.push(conn);
+                    conn.send({ type: 'join', id: myId, name: myName });
+                    setupConn(conn);
+                    showScreen('waitingScreen');
+                    document.getElementById('displayCode').textContent = roomCode;
                 });
-            } catch (e) {
-                console.error('Save error:', e);
-            }
+            });
+            peer.on('error', e => alert('Error: ' + e.message));
         }
 
-        function updateConnectionStatus(status) {
-            const el = document.getElementById('connStatus');
-            if (status === 'connected') {
-                el.textContent = '🟢 Connected';
-                el.className = 'connection-status connected';
+        function setupConn(conn) {
+            conn.on('data', data => {
+                if (data.type === 'join' && isHost) {
+                    gameState.players.push({ id: data.id, name: data.name });
+                    broadcast({ type: 'state', state: gameState });
+                    renderWaiting();
+                }
+                else if (data.type === 'state') {
+                    gameState = data.state;
+                    if (gameState.status === 'waiting') renderWaiting();
+                    else {
+                        showScreen('gameScreen');
+                        render();
+                    }
+                }
+                else if (data.type === 'word' && isHost) {
+                    addWord(data.word, data.playerId, data.playerName);
+                }
+            });
+            conn.on('close', () => { connections = connections.filter(c => c !== conn); });
+        }
+
+        function broadcast(data) { connections.forEach(c => c.send(data)); }
+
+        function renderWaiting() {
+            if (!gameState) return;
+            document.getElementById('waitingPlayers').innerHTML = gameState.players
+                .map(p => `<div style="padding: 5px 0;">${p.name}${p.id === myId ? ' (you)' : ''}</div>`)
+                .join('');
+            document.getElementById('startBtn').disabled = gameState.players.length < 2;
+        }
+
+        function hostStart() {
+            if (!isHost) return;
+            gameState.status = 'playing';
+            broadcast({ type: 'state', state: gameState });
+            showScreen('gameScreen');
+            render();
+            focusInput();
+        }
+
+        // Game logic
+        function submitWord() {
+            const input = document.getElementById('wordInput');
+            let word = input.value.trim().split(/\s+/)[0];
+            if (!word) return;
+            word = word.substring(0, 25);
+            
+            if (isLocal) {
+                addWord(word, gameState.players[gameState.currentTurn].id, gameState.players[gameState.currentTurn].name);
             } else {
-                el.textContent = '🔴 Connection issue...';
-                el.className = 'connection-status error';
+                const currentPlayer = gameState.players[gameState.currentTurn % gameState.players.length];
+                if (currentPlayer.id !== myId) return;
+                
+                if (isHost) {
+                    addWord(word, myId, myName);
+                } else {
+                    connections[0]?.send({ type: 'word', word, playerId: myId, playerName: myName });
+                }
+            }
+            input.value = '';
+        }
+
+        function addWord(word, playerId, playerName) {
+            gameState.words.push({ text: word, playerId, playerName, time: Date.now() });
+            gameState.currentTurn++;
+            
+            if (!isLocal) broadcast({ type: 'state', state: gameState });
+            render();
+            focusInput();
+        }
+
+        function newStory() {
+            if (confirm('Start a new story? Current story will be cleared.')) {
+                gameState.words = [];
+                gameState.currentTurn = 0;
+                lastWordCount = 0;
+                if (!isLocal) broadcast({ type: 'state', state: gameState });
+                render();
             }
         }
 
+        function focusInput() {
+            setTimeout(() => document.getElementById('wordInput').focus(), 100);
+        }
+
+        // Render
         function render() {
             if (!gameState) return;
             
-            const activePlayers = gameState.players;
+            const players = gameState.players;
+            const currentIdx = gameState.currentTurn % players.length;
+            const currentPlayer = players[currentIdx];
+            const isMyTurn = isLocal || currentPlayer.id === myId;
             
-            // Render players
-            const playerList = document.getElementById('playerList');
-            playerList.innerHTML = activePlayers.map((p, i) => {
+            // Players
+            document.getElementById('playersList').innerHTML = players.map((p, i) => {
                 const classes = ['player'];
-                if (i === gameState.currentTurn % activePlayers.length) classes.push('current');
-                if (p.id === myId) classes.push('me');
+                if (i === currentIdx) classes.push('current');
+                if (!isLocal && p.id === myId) classes.push('me');
                 return `<span class="${classes.join(' ')}">${p.name}</span>`;
             }).join('');
             
-            // Render story
+            // Stats
+            document.getElementById('stats').textContent = `${gameState.words.length} words`;
+            
+            // Story
             const storyBox = document.getElementById('storyBox');
             if (gameState.words.length === 0) {
-                storyBox.innerHTML = '<span class="empty-story">The story is empty. Add the first word!</span>';
+                storyBox.innerHTML = '<span class="empty-story">The story begins...</span>';
             } else {
                 storyBox.innerHTML = gameState.words.map((w, i) => {
-                    const classes = ['word'];
-                    if (i >= lastWordCount && i === gameState.words.length - 1) classes.push('new');
-                    if (w.playerId === myId) classes.push('mine');
-                    return `<span class="${classes.join(' ')}">${w.text}</span>`;
+                    const isNew = i >= lastWordCount && i === gameState.words.length - 1;
+                    return `<span class="word${isNew ? ' new' : ''}">${w.text}</span>`;
                 }).join(' ');
-                
-                // Auto-scroll to bottom
                 storyBox.scrollTop = storyBox.scrollHeight;
             }
             lastWordCount = gameState.words.length;
             
-            // Update stats
-            document.getElementById('stats').textContent = `${gameState.words.length} words · ${activePlayers.length} player${activePlayers.length !== 1 ? 's' : ''}`;
-            
-            // Check if it's my turn
-            const currentPlayerIndex = gameState.currentTurn % activePlayers.length;
-            const isMyTurn = activePlayers[currentPlayerIndex]?.id === myId;
-            
-            const turnIndicator = document.getElementById('turnIndicator');
-            const wordInput = document.getElementById('wordInput');
-            const submitBtn = document.getElementById('submitBtn');
-            
-            if (activePlayers.length < 1) {
-                turnIndicator.textContent = "Waiting for players...";
-                turnIndicator.className = 'turn-indicator waiting';
-                wordInput.disabled = true;
-                submitBtn.disabled = true;
-            } else if (isMyTurn) {
-                turnIndicator.textContent = "✨ Your turn! Add a word";
-                turnIndicator.className = 'turn-indicator your-turn';
-                wordInput.disabled = false;
-                submitBtn.disabled = false;
-                wordInput.focus();
+            // Turn indicator
+            const turnEl = document.getElementById('turnIndicator');
+            if (isMyTurn) {
+                turnEl.textContent = isLocal ? `${currentPlayer.name}'s turn` : "✨ Your turn!";
+                turnEl.className = 'turn-indicator your-turn';
             } else {
-                const currentPlayer = activePlayers[currentPlayerIndex];
-                turnIndicator.textContent = `⏳ ${currentPlayer?.name || 'Someone'}'s turn...`;
-                turnIndicator.className = 'turn-indicator waiting';
-                wordInput.disabled = true;
-                submitBtn.disabled = true;
-            }
-        }
-
-        async function submitWord() {
-            const input = document.getElementById('wordInput');
-            let word = input.value.trim();
-            
-            if (!word) return;
-            
-            // Take only first word, allow basic punctuation
-            word = word.split(/\s+/)[0];
-            word = word.substring(0, 30);
-            
-            if (!word) return;
-            
-            // Re-fetch to avoid race conditions
-            await fetchState();
-            
-            // Check it's still our turn
-            const currentPlayerIndex = gameState.currentTurn % gameState.players.length;
-            if (gameState.players[currentPlayerIndex]?.id !== myId) {
-                alert("Not your turn anymore!");
-                render();
-                return;
+                turnEl.textContent = `⏳ ${currentPlayer.name}'s turn...`;
+                turnEl.className = 'turn-indicator waiting';
             }
             
-            gameState.words.push({
-                text: word,
-                playerId: myId,
-                playerName: myName,
-                timestamp: Date.now()
-            });
-            gameState.currentTurn++;
-            gameState.version++;
+            // Input
+            document.getElementById('wordInput').disabled = !isMyTurn;
+            document.getElementById('submitBtn').disabled = !isMyTurn;
             
-            await saveState();
-            input.value = '';
-            render();
-        }
-
-        async function newStory() {
-            if (confirm('Start a fresh story? Everyone will see the reset.')) {
-                await fetchState();
-                gameState.words = [];
-                gameState.currentTurn = 0;
-                gameState.version++;
-                await saveState();
-                render();
+            // Share link
+            if (!isLocal) {
+                const url = location.origin + location.pathname + '?room=' + roomCode;
+                document.getElementById('shareLink').textContent = url;
             }
-        }
-
-        function leaveGame() {
-            if (pollTimer) clearInterval(pollTimer);
-            window.location.href = window.location.pathname;
         }
 
         function copyLink() {
-            const url = document.getElementById('shareCode').textContent;
+            const url = location.origin + location.pathname + '?room=' + roomCode;
             navigator.clipboard.writeText(url).then(() => {
-                const el = document.getElementById('shareCode');
-                const orig = el.textContent;
+                const el = document.getElementById('shareLink');
                 el.textContent = '✓ Copied!';
-                setTimeout(() => el.textContent = orig, 1500);
+                setTimeout(() => el.textContent = url, 1500);
             });
         }
 
-        // Check for room in URL on load
-        window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomFromUrl = urlParams.get('room');
-            if (roomFromUrl) {
-                document.getElementById('roomCode').value = roomFromUrl;
+        // Handle enter key
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('wordInput').addEventListener('keypress', e => {
+                if (e.key === 'Enter') submitWord();
+            });
+            
+            // Check URL for room code
+            const params = new URLSearchParams(location.search);
+            if (params.get('room')) {
+                document.getElementById('joinCode').value = params.get('room');
                 showJoin();
             }
         });
