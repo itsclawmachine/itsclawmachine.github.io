@@ -123,7 +123,7 @@
             height: 100%;
             background: linear-gradient(90deg, #ffb6c1 0%, #ff8fab 100%);
             border-radius: 10px;
-            transition: width 0.3s;
+            transition: width 0.5s ease-out;
         }
         .player-bar.pending {
             background: linear-gradient(90deg, #ffd89b 0%, #f9c846 100%);
@@ -300,6 +300,7 @@
                 <button class="pass-btn hidden" id="shhBtn" onclick="shhBaby()" style="background: linear-gradient(135deg, #b8d4e8 0%, #7eb8da 100%); margin-top: 10px;">
                     Shh! 🤫 <span id="shhProgress"></span>
                 </button>
+                <div class="hidden status-msg" id="shhHelper" style="margin-top:10px; font-size:0.95em;"></div>
             </div>
 
             <div class="players-card">
@@ -557,7 +558,12 @@
             if (!isHost || gameState.status !== 'playing') return;
             
             const holder = gameState.players.find(p => p.id === gameState.holderId);
-            if (holder) holder.pendingStart = null; // lose pending hugs
+            if (holder && holder.pendingStart) {
+                // Only lose half of pending hugs
+                const pendingHugs = Math.floor((Date.now() - holder.pendingStart) / 1000);
+                holder.hugs += Math.floor(pendingHugs / 2);
+                holder.pendingStart = null;
+            }
             
             gameState.status = 'awake';
             gameState.wakeTime = Date.now();
@@ -703,7 +709,9 @@
                 document.getElementById('rightEye').setAttribute('d', 'M 55 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
                 document.getElementById('mouth').setAttribute('d', 'M 42 50 Q 50 58 58 50');
                 document.getElementById('zzz').style.display = 'none';
-                document.getElementById('statusLabel').textContent = holder ? `${holder.role} is putting baby back to sleep...` : 'Putting baby back to sleep...';
+                document.getElementById('statusLabel').innerHTML = holder 
+                    ? `<span style="font-size:1.3em; color:#ff6b6b;">👆 ${holder.role}!</span><br>Put baby back to sleep` 
+                    : 'Put baby back to sleep';
                 document.getElementById('sleepTimer').textContent = '';
             } else {
                 babySvg.classList.remove('awake');
@@ -725,13 +733,17 @@
             const passBtn = document.getElementById('passBtn');
             const shhBtn = document.getElementById('shhBtn');
             
+            const shhHelper = document.getElementById('shhHelper');
             if (isAwake) {
                 passBtn.classList.add('hidden');
                 shhBtn.classList.remove('hidden');
+                shhHelper.classList.remove('hidden');
                 document.getElementById('shhProgress').textContent = `(${shhCount}/${SHH_NEEDED})`;
+                shhHelper.innerHTML = holder ? `<strong>${holder.role}</strong>, tap Shh to soothe the baby!` : '';
             } else {
                 passBtn.classList.remove('hidden');
                 shhBtn.classList.add('hidden');
+                shhHelper.classList.add('hidden');
                 passBtn.disabled = !isLocal && gameState.holderId !== myId;
             }
             
