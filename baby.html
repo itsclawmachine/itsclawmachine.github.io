@@ -276,6 +276,7 @@
         <!-- Game Screen -->
         <div id="gameScreen" class="hidden">
             <div class="card">
+                <div class="round-name" id="roundName" style="text-align:center; font-size:1.1em; color:#6b5b7a; margin-bottom:5px;">🌅 Morning Snooze</div>
                 <div class="timer" id="timer">5:00</div>
                 <div class="baby-container">
                     <svg class="baby-svg" id="babySvg" viewBox="0 0 100 100">
@@ -333,6 +334,16 @@
         let shhCount = 0;
         const SHH_NEEDED = 3;
         let lastSleepStart = null;
+        let currentRound = 0;
+        
+        const ROUNDS = [
+            { name: 'Morning Snooze', emoji: '🌅', minSleep: 8, maxSleep: 15 },
+            { name: 'Mid-Morning Rest', emoji: '☀️', minSleep: 12, maxSleep: 20 },
+            { name: 'Lunch Nap', emoji: '🍼', minSleep: 15, maxSleep: 25 },
+            { name: 'Afternoon Nap', emoji: '🌤️', minSleep: 18, maxSleep: 30 },
+            { name: 'Evening Rest', emoji: '🌆', minSleep: 22, maxSleep: 35 },
+            { name: 'Bedtime', emoji: '🌙', minSleep: 25, maxSleep: 40 }
+        ];
         
         // Inclusive skin tones
         const SKIN_TONES = ['#FFDFC4', '#F0D5BE', '#EECEB3', '#E1B899', '#E5C298', '#D7A86E', '#C68642', '#8D5524', '#6B4423', '#4A2912'];
@@ -374,6 +385,7 @@
             isHost = true;
             const duration = parseInt(document.getElementById('gameLength').value) * 60;
             
+            currentRound = 0;
             gameState = {
                 status: 'playing',
                 duration: duration,
@@ -381,12 +393,14 @@
                 players: selectedRoles.map((role, i) => ({ 
                     id: 'local_' + i, 
                     role: role, 
-                    hugs: 0, 
+                    hugs: 0,
+                    stars: 0,
                     pendingStart: i === 0 ? Date.now() : null 
                 })),
                 holderId: 'local_0',
                 startTime: Date.now(),
-                wakeTime: null
+                wakeTime: null,
+                round: 0
             };
             
             document.getElementById('setupScreen').classList.add('hidden');
@@ -411,10 +425,11 @@
                 status: 'waiting',
                 duration: duration,
                 timeLeft: duration,
-                players: [{ id: myId, role: myRole, hugs: 0, pendingStart: null }],
+                players: [{ id: myId, role: myRole, hugs: 0, stars: 0, pendingStart: null }],
                 holderId: myId,
                 startTime: null,
-                wakeTime: null
+                wakeTime: null,
+                round: 0
             };
             
             peer = new Peer(roomCode);
@@ -531,7 +546,8 @@
         }
 
         function scheduleWake() {
-            const delay = 10000 + Math.random() * 20000;
+            const round = ROUNDS[currentRound] || ROUNDS[ROUNDS.length - 1];
+            const delay = (round.minSleep + Math.random() * (round.maxSleep - round.minSleep)) * 1000;
             wakeTimer = setTimeout(wakeBaby, delay);
         }
 
@@ -589,23 +605,39 @@
                 shhCount++;
                 
                 if (shhCount >= SHH_NEEDED) {
-                    // Baby back to sleep, pass to next player
+                    // Round ends - award star to player with most hugs
+                    const sortedByHugs = [...gameState.players].sort((a, b) => b.hugs - a.hugs);
+                    if (sortedByHugs[0].hugs > 0) {
+                        sortedByHugs[0].stars++;
+                    }
+                    
+                    // Move to next round
+                    currentRound++;
+                    gameState.round = currentRound;
+                    
+                    // Check if game over (all rounds done)
+                    if (currentRound >= ROUNDS.length) {
+                        endGame();
+                        return;
+                    }
+                    
+                    // Reset hugs for new round
+                    gameState.players.forEach(p => {
+                        p.hugs = 0;
+                        p.pendingStart = null;
+                    });
+                    
+                    // Pass to next player
                     const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
                     const nextIdx = (idx + 1) % gameState.players.length;
                     const nextPlayer = gameState.players[nextIdx];
                     gameState.holderId = nextPlayer.id;
-                    
-                    // Catch-up bonus: if next player is in last place, give them bonus hugs
-                    const sortedByHugs = [...gameState.players].sort((a, b) => a.hugs - b.hugs);
-                    if (sortedByHugs[0].id === nextPlayer.id && gameState.players.length > 1) {
-                        nextPlayer.hugs += 3; // Catch-up bonus!
-                    }
-                    
                     nextPlayer.pendingStart = Date.now();
+                    
                     gameState.status = 'playing';
                     gameState.wakeTime = null;
                     shhCount = 0;
-                    lastSleepStart = Date.now(); // Reset sleep timer
+                    lastSleepStart = Date.now();
                     
                     scheduleWake();
                     if (!isLocal) broadcast({ type: 'state', state: gameState });
@@ -621,18 +653,34 @@
             shhCount++;
             
             if (shhCount >= SHH_NEEDED) {
+                // Round ends - award star to player with most hugs
+                const sortedByHugs = [...gameState.players].sort((a, b) => b.hugs - a.hugs);
+                if (sortedByHugs[0].hugs > 0) {
+                    sortedByHugs[0].stars++;
+                }
+                
+                // Move to next round
+                currentRound++;
+                gameState.round = currentRound;
+                
+                // Check if game over
+                if (currentRound >= ROUNDS.length) {
+                    endGame();
+                    return;
+                }
+                
+                // Reset hugs for new round
+                gameState.players.forEach(p => {
+                    p.hugs = 0;
+                    p.pendingStart = null;
+                });
+                
                 const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
                 const nextIdx = (idx + 1) % gameState.players.length;
                 const nextPlayer = gameState.players[nextIdx];
                 gameState.holderId = nextPlayer.id;
-                
-                // Catch-up bonus
-                const sortedByHugs = [...gameState.players].sort((a, b) => a.hugs - b.hugs);
-                if (sortedByHugs[0].id === nextPlayer.id && gameState.players.length > 1) {
-                    nextPlayer.hugs += 3;
-                }
-                
                 nextPlayer.pendingStart = Date.now();
+                
                 gameState.status = 'playing';
                 gameState.wakeTime = null;
                 shhCount = 0;
@@ -688,6 +736,10 @@
 
         function render() {
             if (!gameState) return;
+            
+            // Round name
+            const round = ROUNDS[currentRound] || ROUNDS[ROUNDS.length - 1];
+            document.getElementById('roundName').textContent = `${round.emoji} ${round.name}`;
             
             // Timer
             const mins = Math.floor(gameState.timeLeft / 60);
@@ -760,9 +812,11 @@
                 if (p.pendingStart) displayHugs += Math.floor((Date.now() - p.pendingStart) / 1000);
                 const barWidth = Math.min((displayHugs / (maxHugs + 5)) * 100, 100);
                 
+                const stars = '⭐'.repeat(p.stars || 0);
                 return `
                     <div class="player-row ${isHolder ? 'holding' : ''}">
                         <span class="player-name">${p.role}${!isLocal && p.id === myId ? ' 👈' : ''}</span>
+                        <span style="margin-left:5px; font-size:0.8em;">${stars}</span>
                         <div class="player-bar-container">
                             <div class="player-bar ${isHolder ? 'pending' : ''}" style="width: ${barWidth}%"></div>
                         </div>
@@ -776,7 +830,7 @@
             clearInterval(gameTimer);
             clearTimeout(wakeTimer);
             
-            // Save final pending hugs
+            // Save final pending hugs and award star for current round if any hugs
             gameState.players.forEach(p => {
                 if (p.pendingStart) {
                     p.hugs += Math.floor((Date.now() - p.pendingStart) / 1000);
@@ -784,7 +838,13 @@
                 }
             });
             
-            if (isHost) broadcast({ type: 'state', state: gameState });
+            // Award final round star
+            const sortedByHugs = [...gameState.players].sort((a, b) => b.hugs - a.hugs);
+            if (sortedByHugs[0].hugs > 0) {
+                sortedByHugs[0].stars++;
+            }
+            
+            if (isHost && !isLocal) broadcast({ type: 'state', state: gameState });
             renderGameOver();
         }
 
@@ -792,16 +852,14 @@
             document.getElementById('gameScreen').classList.add('hidden');
             document.getElementById('gameOverScreen').classList.remove('hidden');
             
-            const sorted = [...gameState.players].sort((a, b) => b.hugs - a.hugs);
+            const sorted = [...gameState.players].sort((a, b) => b.stars - a.stars);
             document.getElementById('winnerName').textContent = sorted[0]?.role + '! 👶💕';
             
-            const maxHugs = Math.max(...sorted.map(p => p.hugs), 1);
+            const maxStars = Math.max(...sorted.map(p => p.stars), 1);
             document.getElementById('finalScores').innerHTML = sorted.map(p => `
-                <div class="player-row">
+                <div class="player-row" style="padding: 10px 0;">
                     <span class="player-name">${p.role}</span>
-                    <div class="player-bar-container">
-                        <div class="player-bar" style="width: ${(p.hugs / maxHugs) * 100}%"></div>
-                    </div>
+                    <span style="margin-left: auto; font-size: 1.2em;">${'⭐'.repeat(p.stars || 0) || '—'}</span>
                 </div>
             `).join('');
         }
