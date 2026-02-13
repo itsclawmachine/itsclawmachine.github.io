@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Tic-Tac-Toe</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        h1 { margin: 0 0 10px 0; font-size: 2em; }
+        .status {
+            font-size: 1.2em;
+            margin: 15px 0;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 5px;
+            margin: 20px 0;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 8px;
+            font-size: 3em;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cell:hover:not(.taken) { background: rgba(255,255,255,0.2); }
+        .cell.taken { cursor: not-allowed; }
+        .cell.x { color: #ff6b6b; }
+        .cell.o { color: #4ecdc4; }
+        .setup {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 350px;
+        }
+        button {
+            background: #4ecdc4;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1em;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        button:hover { background: #45b7aa; }
+        button.secondary {
+            background: #ff6b6b;
+        }
+        button.secondary:hover { background: #ee5a5a; }
+        input {
+            padding: 12px;
+            font-size: 1em;
+            border: none;
+            border-radius: 6px;
+            width: 100%;
+            margin: 10px 0;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .code {
+            font-family: monospace;
+            font-size: 1.8em;
+            background: #4ecdc4;
+            color: #1a1a2e;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: inline-block;
+            user-select: all;
+        }
+        .hidden { display: none; }
+        .winner {
+            font-size: 1.5em;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            border-radius: 8px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .play-again {
+            margin-top: 15px;
+        }
+        small { opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <h1>🎮 P2P Tic-Tac-Toe</h1>
+    
+    <div id="setup" class="setup">
+        <p>Play real-time with a friend.<br><small>No server, direct peer-to-peer!</small></p>
+        <button onclick="createGame()">Create Game</button>
+        <button class="secondary" onclick="showJoin()">Join Game</button>
+        <div id="joinForm" class="hidden">
+            <input type="text" id="joinCode" placeholder="Enter game code" maxlength="6">
+            <button onclick="joinGame()">Connect</button>
+        </div>
+    </div>
+
+    <div id="waiting" class="setup hidden">
+        <p>Share this code with your friend:</p>
+        <div class="code" id="gameCode">------</div>
+        <p><small>Waiting for opponent...</small></p>
+    </div>
+
+    <div id="game" class="hidden">
+        <div class="status" id="status">Connecting...</div>
+        <div class="board" id="board"></div>
+        <button class="play-again hidden" id="playAgain" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        let peer, conn;
+        let isHost = false;
+        let mySymbol = '';
+        let board = ['','','','','','','','',''];
+        let currentTurn = 'X';
+        let gameOver = false;
+
+        const wins = [
+            [0,1,2], [3,4,5], [6,7,8],
+            [0,3,6], [1,4,7], [2,5,8],
+            [0,4,8], [2,4,6]
+        ];
+
+        function generateCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function createGame() {
+            const code = generateCode();
+            document.getElementById('gameCode').textContent = code;
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('waiting').classList.remove('hidden');
+            
+            isHost = true;
+            mySymbol = 'X';
+            
+            peer = new Peer(code);
+            peer.on('open', () => console.log('Peer ready:', code));
+            peer.on('connection', (connection) => {
+                conn = connection;
+                setupConnection();
+                document.getElementById('waiting').classList.add('hidden');
+                document.getElementById('game').classList.remove('hidden');
+                renderBoard();
+                updateStatus();
+            });
+            peer.on('error', (err) => {
+                alert('Error: ' + err.message);
+                location.reload();
+            });
+        }
+
+        function showJoin() {
+            document.getElementById('joinForm').classList.remove('hidden');
+        }
+
+        function joinGame() {
+            const code = document.getElementById('joinCode').value.toUpperCase().trim();
+            if (code.length < 4) {
+                alert('Enter a valid code');
+                return;
+            }
+            
+            isHost = false;
+            mySymbol = 'O';
+            
+            peer = new Peer();
+            peer.on('open', () => {
+                conn = peer.connect(code);
+                conn.on('open', () => {
+                    setupConnection();
+                    document.getElementById('setup').classList.add('hidden');
+                    document.getElementById('game').classList.remove('hidden');
+                    renderBoard();
+                    updateStatus();
+                });
+            });
+            peer.on('error', (err) => {
+                alert('Could not connect: ' + err.message);
+            });
+        }
+
+        function setupConnection() {
+            conn.on('data', (data) => {
+                if (data.type === 'move') {
+                    board = data.board;
+                    currentTurn = data.turn;
+                    gameOver = data.gameOver;
+                    renderBoard();
+                    updateStatus();
+                } else if (data.type === 'reset') {
+                    board = ['','','','','','','','',''];
+                    currentTurn = 'X';
+                    gameOver = false;
+                    document.getElementById('playAgain').classList.add('hidden');
+                    renderBoard();
+                    updateStatus();
+                }
+            });
+            conn.on('close', () => {
+                alert('Opponent disconnected');
+                location.reload();
+            });
+        }
+
+        function renderBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            board.forEach((cell, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'cell' + (cell ? ' taken ' + cell.toLowerCase() : '');
+                btn.textContent = cell;
+                btn.onclick = () => makeMove(i);
+                boardEl.appendChild(btn);
+            });
+        }
+
+        function makeMove(index) {
+            if (gameOver || board[index] || currentTurn !== mySymbol) return;
+            
+            board[index] = mySymbol;
+            currentTurn = mySymbol === 'X' ? 'O' : 'X';
+            
+            const winner = checkWinner();
+            if (winner || !board.includes('')) {
+                gameOver = true;
+            }
+            
+            conn.send({ type: 'move', board, turn: currentTurn, gameOver });
+            renderBoard();
+            updateStatus();
+        }
+
+        function checkWinner() {
+            for (const [a, b, c] of wins) {
+                if (board[a] && board[a] === board[b] && board[b] === board[c]) {
+                    return board[a];
+                }
+            }
+            return null;
+        }
+
+        function updateStatus() {
+            const statusEl = document.getElementById('status');
+            const winner = checkWinner();
+            
+            if (winner) {
+                statusEl.innerHTML = winner === mySymbol 
+                    ? '<span class="winner">🎉 You Win!</span>' 
+                    : '<span class="winner">😢 You Lose</span>';
+                document.getElementById('playAgain').classList.remove('hidden');
+            } else if (!board.includes('')) {
+                statusEl.innerHTML = '<span class="winner">🤝 Draw!</span>';
+                document.getElementById('playAgain').classList.remove('hidden');
+            } else if (currentTurn === mySymbol) {
+                statusEl.textContent = `Your turn (${mySymbol})`;
+            } else {
+                statusEl.textContent = `Opponent's turn (${currentTurn})`;
+            }
+        }
+
+        function resetGame() {
+            board = ['','','','','','','','',''];
+            currentTurn = 'X';
+            gameOver = false;
+            document.getElementById('playAgain').classList.add('hidden');
+            conn.send({ type: 'reset' });
+            renderBoard();
+            updateStatus();
+        }
+    </script>
+</body>
+</html>
