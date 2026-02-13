@@ -280,7 +280,7 @@
                 <div class="baby-container">
                     <svg class="baby-svg" id="babySvg" viewBox="0 0 100 100">
                         <ellipse cx="50" cy="65" rx="40" ry="25" fill="#b8d4e8"/>
-                        <circle cx="50" cy="40" r="28" fill="#ffdab9"/>
+                        <circle id="babyFace" cx="50" cy="40" r="28" fill="#ffdab9"/>
                         <circle cx="35" cy="45" r="5" fill="#ffb6c1" opacity="0.5"/>
                         <circle cx="65" cy="45" r="5" fill="#ffb6c1" opacity="0.5"/>
                         <path id="leftEye" d="M 35 38 Q 40 42 45 38" stroke="#666" stroke-width="2" fill="none"/>
@@ -296,6 +296,9 @@
                     <div class="status-label" id="statusLabel">Loading...</div>
                 </div>
                 <button class="pass-btn" id="passBtn" onclick="passBaby()" disabled>Pass Baby 💕</button>
+                <button class="pass-btn hidden" id="shhBtn" onclick="shhBaby()" style="background: linear-gradient(135deg, #b8d4e8 0%, #7eb8da 100%); margin-top: 10px;">
+                    Shh! 🤫 <span id="shhProgress"></span>
+                </button>
             </div>
 
             <div class="players-card">
@@ -325,6 +328,12 @@
         let gameState = null;
         let gameTimer = null;
         let wakeTimer = null;
+        let shhCount = 0;
+        const SHH_NEEDED = 5;
+        
+        // Inclusive skin tones
+        const SKIN_TONES = ['#FFDFC4', '#F0D5BE', '#EECEB3', '#E1B899', '#E5C298', '#D7A86E', '#C68642', '#8D5524', '#6B4423', '#4A2912'];
+        let babySkinColor = SKIN_TONES[Math.floor(Math.random() * SKIN_TONES.length)];
 
         function genCode() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -474,6 +483,9 @@
                 else if (data.type === 'pass' && isHost) {
                     handlePass(data.fromId);
                 }
+                else if (data.type === 'shh' && isHost) {
+                    handleShh();
+                }
                 else if (data.type === 'wake') {
                     showWake();
                 }
@@ -519,18 +531,22 @@
         }
 
         function tick() {
-            if (!gameState || gameState.status !== 'playing') return;
+            if (!gameState) return;
+            if (gameState.status !== 'playing' && gameState.status !== 'awake') return;
             
-            const elapsed = (Date.now() - gameState.startTime) / 1000;
-            gameState.timeLeft = Math.max(0, gameState.duration - elapsed);
-            
-            if (gameState.timeLeft <= 0) {
-                endGame();
-                return;
+            // Only count time when playing (pause when awake)
+            if (gameState.status === 'playing') {
+                const elapsed = (Date.now() - gameState.startTime) / 1000;
+                gameState.timeLeft = Math.max(0, gameState.duration - elapsed);
+                
+                if (gameState.timeLeft <= 0) {
+                    endGame();
+                    return;
+                }
             }
             
             render();
-            if (isHost) broadcast({ type: 'state', state: gameState });
+            if (isHost && gameState.status === 'playing') broadcast({ type: 'state', state: gameState });
         }
 
         function wakeBaby() {
@@ -539,18 +555,13 @@
             const holder = gameState.players.find(p => p.id === gameState.holderId);
             if (holder) holder.pendingStart = null; // lose pending hugs
             
-            // Pass to next
-            const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
-            const nextIdx = (idx + 1) % gameState.players.length;
-            gameState.holderId = gameState.players[nextIdx].id;
-            gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
+            gameState.status = 'awake';
             gameState.wakeTime = Date.now();
+            shhCount = 0;
             
             broadcast({ type: 'wake' });
             broadcast({ type: 'state', state: gameState });
             showWake();
-            
-            scheduleWake();
         }
 
         function showWake() {
@@ -558,6 +569,51 @@
             overlay.className = 'wake-overlay';
             document.body.appendChild(overlay);
             setTimeout(() => overlay.remove(), 500);
+            render();
+        }
+
+        function shhBaby() {
+            if (gameState.status !== 'awake') return;
+            
+            if (isLocal || isHost) {
+                shhCount++;
+                
+                if (shhCount >= SHH_NEEDED) {
+                    // Baby back to sleep, pass to next player
+                    const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
+                    const nextIdx = (idx + 1) % gameState.players.length;
+                    gameState.holderId = gameState.players[nextIdx].id;
+                    gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
+                    gameState.status = 'playing';
+                    gameState.wakeTime = null;
+                    shhCount = 0;
+                    
+                    scheduleWake();
+                    if (!isLocal) broadcast({ type: 'state', state: gameState });
+                }
+                render();
+            } else {
+                connections[0]?.send({ type: 'shh' });
+            }
+        }
+
+        function handleShh() {
+            // Host handles shh from remote player
+            shhCount++;
+            
+            if (shhCount >= SHH_NEEDED) {
+                const idx = gameState.players.findIndex(p => p.id === gameState.holderId);
+                const nextIdx = (idx + 1) % gameState.players.length;
+                gameState.holderId = gameState.players[nextIdx].id;
+                gameState.players.find(p => p.id === gameState.holderId).pendingStart = Date.now();
+                gameState.status = 'playing';
+                gameState.wakeTime = null;
+                shhCount = 0;
+                
+                scheduleWake();
+            }
+            broadcast({ type: 'state', state: gameState });
+            render();
         }
 
         function passBaby() {
@@ -602,19 +658,22 @@
             const secs = Math.floor(gameState.timeLeft % 60);
             document.getElementById('timer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
             
+            // Set skin color
+            document.getElementById('babyFace').setAttribute('fill', babySkinColor);
+            
             // Baby
             const holder = gameState.players.find(p => p.id === gameState.holderId);
-            const recentWake = gameState.wakeTime && (Date.now() - gameState.wakeTime) < 1500;
+            const isAwake = gameState.status === 'awake';
             const babySvg = document.getElementById('babySvg');
             
-            if (recentWake) {
+            if (isAwake) {
                 babySvg.classList.remove('wiggle');
                 babySvg.classList.add('awake');
                 document.getElementById('leftEye').setAttribute('d', 'M 35 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
                 document.getElementById('rightEye').setAttribute('d', 'M 55 35 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0');
                 document.getElementById('mouth').setAttribute('d', 'M 42 50 Q 50 58 58 50');
                 document.getElementById('zzz').style.display = 'none';
-                document.getElementById('statusLabel').textContent = '😢 Baby woke up!';
+                document.getElementById('statusLabel').textContent = '😢 Baby woke up! Shh!';
             } else {
                 babySvg.classList.remove('awake');
                 babySvg.classList.add('wiggle');
@@ -625,8 +684,19 @@
                 document.getElementById('statusLabel').textContent = holder ? `${holder.role} is hugging` : '';
             }
             
-            // Pass button - always enabled in local mode
-            document.getElementById('passBtn').disabled = !isLocal && gameState.holderId !== myId;
+            // Show/hide buttons based on state
+            const passBtn = document.getElementById('passBtn');
+            const shhBtn = document.getElementById('shhBtn');
+            
+            if (isAwake) {
+                passBtn.classList.add('hidden');
+                shhBtn.classList.remove('hidden');
+                document.getElementById('shhProgress').textContent = `(${shhCount}/${SHH_NEEDED})`;
+            } else {
+                passBtn.classList.remove('hidden');
+                shhBtn.classList.add('hidden');
+                passBtn.disabled = !isLocal && gameState.holderId !== myId;
+            }
             
             // Players
             const maxHugs = Math.max(...gameState.players.map(p => {
